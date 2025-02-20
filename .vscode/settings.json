@@ -1,0 +1,101 @@
+{
+    "autoHeader": {
+        "format": {
+            "startWith": "#=",
+            "middleWith": "",
+            "endWith": "=#",
+            "headerPrefix": "@",
+        },
+        "header": {
+            "author": "bcynuaa <bcynuaa@163.com>",
+            "date": {
+                "type": "createTime",
+                "format": "YYYY/MM/DD HH:mm:ss",
+            },
+            "license": "MIT",
+            "language": "Julia",
+            "declaration": "`EtherParallelParticles` a parallel particle-based simulator supporting multi-backend gpu in julia.",
+            "description": "",
+        }
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/.stfolder": true,
+        "**/.stignore": true,
+    },
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#65c89b",
+        "activityBar.background": "#65c89b",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#945bc4",
+        "activityBarBadge.foreground": "#e7e7e7",
+        "commandCenter.border": "#15202b99",
+        "sash.hoverBorder": "#65c89b",
+        "statusBar.background": "#42b883",
+        "statusBar.foreground": "#15202b",
+        "statusBarItem.hoverBackground": "#359268",
+        "statusBarItem.remoteBackground": "#42b883",
+        "statusBarItem.remoteForeground": "#15202b",
+        "titleBar.activeBackground": "#42b883",
+        "titleBar.activeForeground": "#15202b",
+        "titleBar.inactiveBackground": "#42b88399",
+        "titleBar.inactiveForeground": "#15202b99"
+    },
+    "peacock.color": "#42b883",
+    "material-icon-theme.folders.customClones": [
+        {
+            "name": "domain",
+            "base": "container",
+            "color": "blue-200",
+            "lightColor": "blue-500",
+            "folderNames": [
+                "domain",
+            ],
+            "rootFolderNames": [
+                "domain"
+            ]
+        },
+        {
+            "name": "neighboursystem",
+            "base": "connection",
+            "color": "orange-200",
+            "lightColor": "orange-700",
+            "folderNames": [
+                "neighboursystem",
+            ],
+            "rootFolderNames": [
+                "neighboursystem"
+            ]
+        },
+        {
+            "name": "particlesystem",
+            "base": "react-components",
+            "color": "blue-200",
+            "lightColor": "blue-900",
+            "folderNames": [
+                "particlesystem",
+            ],
+            "rootFolderNames": [
+                "particlesystem"
+            ]
+        },
+        {
+            "name": "algorithm",
+            "base": "tools",
+            "color": "light-blue-500",
+            "lightColor": "light-blue-700",
+            "folderNames": [
+                "algorithm",
+            ],
+            "rootFolderNames": [
+                "algorithm"
+            ]
+        },
+    ],
+}
