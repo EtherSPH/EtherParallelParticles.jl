@@ -1,0 +1,7 @@
+# .gitattributes file
+
+# binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.pdf binary
