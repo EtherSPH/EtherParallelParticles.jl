@@ -13,7 +13,7 @@
     include("PeriodicBoundaryTest.jl")
     if USING_CPU == true
         @testset "NeighbourSystem CPU" begin
-            include("../../cpu_test_head.jl")
+            include("../../Head/cpu_test_head.jl")
             domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
             active_pair = [1 => 1, 1 => 2, 2 => 1]
             periodic_boundary_policy = EtherParallelParticles.Class.NonePeriodicBoundaryPolicy
@@ -45,7 +45,7 @@
     end
     if USING_CUDA == true
         @testset "NeighbourSystem CUDA" begin
-            include("../../cuda_test_head.jl")
+            include("../../Head/cuda_test_head.jl")
             domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
             active_pair = [1 => 1, 1 => 2, 2 => 1]
             periodic_boundary_policy = EtherParallelParticles.Class.NonePeriodicBoundaryPolicy
@@ -77,7 +77,7 @@
     end
     if USING_ONEAPI == true
         @testset "NeighbourSystem ONEAPI" begin
-            include("../../oneapi_test_head.jl")
+            include("../../Head/oneapi_test_head.jl")
             domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
             active_pair = [1 => 1, 1 => 2, 2 => 1]
             periodic_boundary_policy = EtherParallelParticles.Class.NonePeriodicBoundaryPolicy

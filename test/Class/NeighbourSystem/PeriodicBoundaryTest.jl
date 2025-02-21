@@ -10,7 +10,7 @@
 @testset "PeriodicBoundary" begin
     if USING_CPU == true
         @testset "PeriodicBoundary CPU" begin
-            include("../../cpu_test_head.jl")
+            include("../../Head/cpu_test_head.jl")
             domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
             # 5 * 4 = 20 cells
             # 4 | 6 | 6 | 6 | 4
@@ -36,7 +36,7 @@
     end
     if USING_CUDA == true
         @testset "PeriodicBoundary CUDA" begin
-            include("../../cuda_test_head.jl")
+            include("../../Head/cuda_test_head.jl")
             domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
             # 5 * 4 = 20 cells
             # 4 | 6 | 6 | 6 | 4
@@ -62,7 +62,7 @@
     end
     if USING_ONEAPI == true
         @testset "PeriodicBoundary ONEAPI" begin
-            include("../../oneapi_test_head.jl")
+            include("../../Head/oneapi_test_head.jl")
             domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
             # 5 * 4 = 20 cells
             # 4 | 6 | 6 | 6 | 4

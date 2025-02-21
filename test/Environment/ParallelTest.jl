@@ -10,7 +10,7 @@
 @testset "Parallel" begin
     if USING_CPU == true
         @testset "Parallel CPU" begin
-            include("../cpu_test_head.jl")
+            include("../Head/cpu_test_head.jl")
             @test EtherParallelParticles.Environment.get_int_type(parallel) == Int32
             @test EtherParallelParticles.Environment.get_float_type(parallel) == Float32
             @test EtherParallelParticles.Environment.get_container_type(parallel) == Array
@@ -34,7 +34,7 @@
     end
     if USING_CUDA == true
         @testset "Parallel CUDA" begin
-            include("../cuda_test_head.jl")
+            include("../Head/cuda_test_head.jl")
             @test EtherParallelParticles.Environment.get_int_type(parallel) == Int32
             @test EtherParallelParticles.Environment.get_float_type(parallel) == Float32
             @test EtherParallelParticles.Environment.get_container_type(parallel) == CuArray
@@ -59,7 +59,7 @@
     end
     if USING_ONEAPI == true
         @testset "Parallel ONEAPI" begin
-            include("../oneapi_test_head.jl")
+            include("../Head/oneapi_test_head.jl")
             @test EtherParallelParticles.Environment.get_int_type(parallel) == Int32
             @test EtherParallelParticles.Environment.get_float_type(parallel) == Float32
             @test EtherParallelParticles.Environment.get_container_type(parallel) == oneArray

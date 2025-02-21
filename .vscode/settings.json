@@ -97,5 +97,17 @@
                 "algorithm"
             ]
         },
+        {
+            "name": "head",
+            "base": "import",
+            "color": "yellow-500",
+            "lightColor": "yellow-700",
+            "folderNames": [
+                "head",
+            ],
+            "rootFolderNames": [
+                "head"
+            ]
+        },
     ],
 }

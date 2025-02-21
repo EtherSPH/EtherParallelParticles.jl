@@ -10,7 +10,7 @@
 @testset "ParticleSystemBase" begin
     if USING_CPU == true
         @testset "ParticleSystemBase CPU" begin
-            include("../../cpu_test_head.jl")
+            include("../../Head/cpu_test_head.jl")
             n_capacity = 100
             int_n_capacity = 20
             float_n_capacity = 30
@@ -26,7 +26,7 @@
     end
     if USING_CUDA == true
         @testset "ParticleSystemBase CUDA" begin
-            include("../../cuda_test_head.jl")
+            include("../../Head/cuda_test_head.jl")
             n_capacity = 100
             int_n_capacity = 20
             float_n_capacity = 30
@@ -42,7 +42,7 @@
     end
     if USING_ONEAPI == true
         @testset "ParticleSystemBase ONEAPI" begin
-            include("../../oneapi_test_head.jl")
+            include("../../Head/oneapi_test_head.jl")
             n_capacity = 100
             int_n_capacity = 20
             float_n_capacity = 30

@@ -21,4 +21,5 @@ const USING_ONEAPI = true
     include("Utility/UtilityTest.jl")
     include("Environment/EnvironmentTest.jl")
     include("Class/ClassTest.jl")
+    include("Algorithm/AlgorithmTest.jl")
 end

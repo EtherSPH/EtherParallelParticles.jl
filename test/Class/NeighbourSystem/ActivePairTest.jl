@@ -10,7 +10,7 @@
 @testset "ActivePair" begin
     if USING_CPU == true
         @testset "ActivePair CPU" begin
-            include("../../cpu_test_head.jl")
+            include("../../Head/cpu_test_head.jl")
             pair_vector = [1 => 1, 1 => 2, 2 => 1, 1 => 3, 3 => 1]
             active_pair = EtherParallelParticles.Class.ActivePair(parallel, pair_vector)
             @test active_pair.pair_vector_ ==
@@ -24,7 +24,7 @@
     end
     if USING_CUDA == true
         @testset "ActivePair CUDA" begin
-            include("../../cuda_test_head.jl")
+            include("../../Head/cuda_test_head.jl")
             pair_vector = [1 => 1, 1 => 2, 2 => 1, 1 => 3, 3 => 1]
             active_pair = EtherParallelParticles.Class.ActivePair(parallel, pair_vector)
             @test active_pair.pair_vector_ ==
@@ -38,7 +38,7 @@
     end
     if USING_ONEAPI == true
         @testset "ActivePair ONEAPI" begin
-            include("../../oneapi_test_head.jl")
+            include("../../Head/oneapi_test_head.jl")
             pair_vector = [1 => 1, 1 => 2, 2 => 1, 1 => 3, 3 => 1]
             active_pair = EtherParallelParticles.Class.ActivePair(parallel, pair_vector)
             @test active_pair.pair_vector_ ==

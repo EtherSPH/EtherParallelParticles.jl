@@ -12,7 +12,7 @@
     include("NamedIndexTest.jl")
     if USING_CPU == true
         @testset "ParticleSystem CPU" begin
-            include("../../cpu_test_head.jl")
+            include("../../Head/cpu_test_head.jl")
             domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
             dim = 2
             neighbour_count = 50
@@ -90,7 +90,7 @@
     end
     if USING_CUDA == true
         @testset "ParticleSystem CUDA" begin
-            include("../../cuda_test_head.jl")
+            include("../../Head/cuda_test_head.jl")
             domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
             dim = 2
             neighbour_count = 50
@@ -168,7 +168,7 @@
     end
     if USING_ONEAPI == true
         @testset "ParticleSystem ONEAPI" begin
-            include("../../oneapi_test_head.jl")
+            include("../../Head/oneapi_test_head.jl")
             domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
             dim = 2
             neighbour_count = 50
