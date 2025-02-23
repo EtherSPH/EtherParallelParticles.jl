@@ -48,6 +48,12 @@
         "titleBar.inactiveForeground": "#15202b99"
     },
     "peacock.color": "#42b883",
+    "material-icon-theme.files.associations": {
+        "*.ts": "typescript",
+        "**.json": "json",
+        "fileName.ts": "angular",
+        "**.jld2": "database",
+    },
     "material-icon-theme.folders.customClones": [
         {
             "name": "domain",

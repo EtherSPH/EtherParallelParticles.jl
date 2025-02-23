@@ -9,4 +9,5 @@
 
 @testset "Algorithm" begin
     include("NeighbourSearchTest.jl")
+    include("ActionTest.jl")
 end

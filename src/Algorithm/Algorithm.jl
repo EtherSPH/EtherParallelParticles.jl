@@ -19,5 +19,6 @@ const kDefaultThreadNumber = 256
 const kDefaultMaxNeighbourNumber = 50
 
 include("NeighbourSearch.jl")
+include("Action.jl")
 
 end # module Algorithm
