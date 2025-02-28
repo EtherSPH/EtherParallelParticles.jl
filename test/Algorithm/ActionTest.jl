@@ -80,6 +80,8 @@
 
             EtherParallelParticles.Algorithm.selfaction!(particle_system, self!)
             EtherParallelParticles.Algorithm.interaction!(particle_system, interaction!)
+            EtherParallelParticles.Algorithm.dynamic_selfaction!(particle_system, self!)
+            EtherParallelParticles.Algorithm.dynamic_interaction!(particle_system, interaction!)
             EtherParallelParticles.Class.toHost!(particle_system)
             @test particle_system.host_base_.float_properties_[1:9, 1] ≈ FT[4, 5, 3, 5, 6, 3, 4, 5, 3]
             @test particle_system.host_base_.float_properties_[1:9, 2] ≈ FT[4, 5, 3, 5, 6, 3, 4, 5, 3]
@@ -157,6 +159,8 @@
 
             EtherParallelParticles.Algorithm.selfaction!(particle_system, self!)
             EtherParallelParticles.Algorithm.interaction!(particle_system, interaction!)
+            EtherParallelParticles.Algorithm.dynamic_selfaction!(particle_system, self!)
+            EtherParallelParticles.Algorithm.dynamic_interaction!(particle_system, interaction!)
             EtherParallelParticles.Class.toHost!(particle_system)
             @test particle_system.host_base_.float_properties_[1:9, 1] ≈ FT[4, 5, 3, 5, 6, 3, 4, 5, 3]
             @test particle_system.host_base_.float_properties_[1:9, 2] ≈ FT[4, 5, 3, 5, 6, 3, 4, 5, 3]
@@ -234,6 +238,8 @@
 
             EtherParallelParticles.Algorithm.selfaction!(particle_system, self!)
             EtherParallelParticles.Algorithm.interaction!(particle_system, interaction!)
+            EtherParallelParticles.Algorithm.dynamic_selfaction!(particle_system, self!)
+            EtherParallelParticles.Algorithm.dynamic_interaction!(particle_system, interaction!)
             EtherParallelParticles.Class.toHost!(particle_system)
             @test particle_system.host_base_.float_properties_[1:9, 1] ≈ FT[4, 5, 3, 5, 6, 3, 4, 5, 3]
             @test particle_system.host_base_.float_properties_[1:9, 2] ≈ FT[4, 5, 3, 5, 6, 3, 4, 5, 3]

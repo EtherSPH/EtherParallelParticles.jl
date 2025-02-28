@@ -32,3 +32,15 @@ export NonePeriodicBoundaryPolicy, HavePeriodicBoundaryPolicy
 export PeriodicBoundaryPolicy2D, PeriodicBoundaryPolicy3D
 
 end # module Class
+
+using EtherParallelParticles.Class: Domain2D
+using EtherParallelParticles.Class: ParticleSystem
+using EtherParallelParticles.Class: NeighbourSystem
+using EtherParallelParticles.Class: PeriodicBoundaryPolicy2D
+using EtherParallelParticles.Class: PeriodicBoundaryPolicy3D
+
+export Domain2D
+export ParticleSystem
+export NeighbourSystem
+export PeriodicBoundaryPolicy2D
+export PeriodicBoundaryPolicy3D

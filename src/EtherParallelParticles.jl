@@ -13,5 +13,9 @@ include("Utility/Utility.jl")
 include("Environment/Environment.jl")
 include("Class/Class.jl")
 include("Algorithm/Algorithm.jl")
+include("Math/Math.jl")
+include("SPH/SPH.jl")
+
+export Utility, Environment, Class, Algorithm, Math, SPH
 
 end # module EtherParallelParticles

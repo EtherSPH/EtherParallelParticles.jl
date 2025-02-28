@@ -19,6 +19,8 @@
     @inbounds return ps_int_properties[I, parameters.nIndex + NI - 1]
 end
 
+# * ==================== selfaction! ==================== * #
+
 @kernel function device_selfaction!(
     dimension::Type{Dimension},
     @Const(ps_is_alive),
@@ -45,7 +47,24 @@ end
     N,
     Dimension <: AbstractDimension{N},
 }
-    device_selfaction!(Backend, n_threads)(
+    static_selfaction!(particle_system, action!; n_threads = n_threads) # default `static_selfaction!`
+    return nothing
+end
+
+@inline function static_selfaction!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+    action!::Function;
+    n_threads::Integer = kDefaultThreadNumber,
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT <: AbstractArray,
+    Backend,
+    N,
+    Dimension <: AbstractDimension{N},
+}
+    kernel_selfaction! = device_selfaction!(Backend, n_threads, (Int64(Class.get_n_particles(particle_system)),))
+    kernel_selfaction!(
         Dimension,
         particle_system.device_base_.is_alive_,
         particle_system.device_base_.int_properties_,
@@ -57,6 +76,32 @@ end
     KernelAbstractions.synchronize(Backend)
     return nothing
 end
+
+@inline function dynamic_selfaction!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+    action!::Function;
+    n_threads::Integer = kDefaultThreadNumber,
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT <: AbstractArray,
+    Backend,
+    N,
+    Dimension <: AbstractDimension{N},
+}
+    device_selfaction!(Backend, n_threads)(
+        Dimension,
+        particle_system.device_base_.is_alive_,
+        particle_system.device_base_.int_properties_,
+        particle_system.device_base_.float_properties_,
+        particle_system.parameters_,
+        action!,
+        ndrange = (Class.get_n_particles(particle_system),),
+    )
+    KernelAbstractions.synchronize(Backend)
+end
+
+# * ==================== interaction! ==================== * #
 
 @kernel function device_interaction!(
     dimension::Type{Dimension},
@@ -89,7 +134,24 @@ end
     N,
     Dimension <: AbstractDimension{N},
 }
-    device_interaction!(Backend, n_threads)(
+    static_interaction!(particle_system, action!; n_threads = n_threads) # default `static_interaction!`
+    return nothing
+end
+
+@inline function static_interaction!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+    action!::Function;
+    n_threads::Integer = kDefaultThreadNumber,
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT <: AbstractArray,
+    Backend,
+    N,
+    Dimension <: AbstractDimension{N},
+}
+    kernel_interaction! = device_interaction!(Backend, n_threads, (Int64(Class.get_n_particles(particle_system)),))
+    kernel_interaction!(
         Dimension,
         particle_system.device_base_.is_alive_,
         particle_system.device_base_.int_properties_,
@@ -101,4 +163,29 @@ end
     )
     KernelAbstractions.synchronize(Backend)
     return nothing
+end
+
+@inline function dynamic_interaction!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+    action!::Function;
+    n_threads::Integer = kDefaultThreadNumber,
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT <: AbstractArray,
+    Backend,
+    N,
+    Dimension <: AbstractDimension{N},
+}
+    device_interaction!(Backend, n_threads)(
+        Dimension,
+        particle_system.device_base_.is_alive_,
+        particle_system.device_base_.int_properties_,
+        particle_system.device_base_.float_properties_,
+        particle_system.parameters_,
+        particle_system.basic_index_.nCount,
+        action!,
+        ndrange = (Class.get_n_particles(particle_system),),
+    )
+    KernelAbstractions.synchronize(Backend)
 end

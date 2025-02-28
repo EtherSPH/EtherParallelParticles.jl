@@ -46,7 +46,38 @@ end
 
 # TODO: add 3D support
 
-@inline function host_insertParticlesIntoCells!(
+@inline function static_host_insertParticlesIntoCells!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+    domain::AbstractDomain{IT, FT, Dimension},
+    neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy},
+    n_particles::IT;
+    n_threads::Integer = kDefaultThreadNumber,
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT <: AbstractArray,
+    Backend,
+    N,
+    Dimension <: AbstractDimension{N},
+    PeriodicBoundaryPolicy <: AbstractPeriodicBoundaryPolicy,
+}
+    kernel_insertParticlesIntoCells! = device_insertParticlesIntoCells!(Backend, n_threads, (Int64(n_particles),))
+    kernel_insertParticlesIntoCells!(
+        domain,
+        particle_system.device_base_.is_alive_,
+        particle_system.device_base_.is_movable_,
+        particle_system.device_base_.cell_index_,
+        particle_system.device_base_.float_properties_,
+        neighbour_system.base_.contained_particle_index_count_,
+        neighbour_system.base_.contained_particle_index_list_,
+        particle_system.basic_index_.PositionVec,
+        ndrange = (n_particles,),
+    )
+    KernelAbstractions.synchronize(Backend)
+    return nothing
+end
+
+@inline function dynamic_host_insertParticlesIntoCells!(
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
     domain::AbstractDomain{IT, FT, Dimension},
     neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy},
@@ -164,7 +195,48 @@ end
 
 # TODO: add 3D support
 
-@inline function host_findNeighbourParticlesFromCells!(
+@inline function static_host_findNeighbourParticlesFromCells!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+    domain::AbstractDomain{IT, FT, Dimension},
+    neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy},
+    n_particles::IT;
+    n_threads::Integer = kDefaultThreadNumber,
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT <: AbstractArray,
+    Backend,
+    Dimension <: AbstractDimension,
+    PeriodicBoundaryPolicy <: AbstractPeriodicBoundaryPolicy,
+}
+    kernel_findNeighbourParticlesFromCells! =
+        device_findNeighbourParticlesFromCells!(Backend, n_threads, (Int64(n_particles),))
+    kernel_findNeighbourParticlesFromCells!(
+        domain,
+        PeriodicBoundaryPolicy,
+        particle_system.device_base_.is_alive_,
+        particle_system.device_base_.cell_index_,
+        particle_system.device_base_.int_properties_,
+        particle_system.device_base_.float_properties_,
+        neighbour_system.base_.contained_particle_index_count_,
+        neighbour_system.base_.contained_particle_index_list_,
+        neighbour_system.base_.neighbour_cell_index_count_,
+        neighbour_system.base_.neighbour_cell_index_list_,
+        neighbour_system.active_pair_.adjacency_matrix_,
+        neighbour_system.periodic_boundary_.neighbour_cell_relative_position_list_,
+        particle_system.basic_index_.Tag,
+        particle_system.basic_index_.PositionVec,
+        particle_system.basic_index_.nCount,
+        particle_system.basic_index_.nIndex,
+        particle_system.basic_index_.nRVec,
+        particle_system.basic_index_.nR,
+        ndrange = (n_particles,),
+    )
+    KernelAbstractions.synchronize(Backend)
+    return nothing
+end
+
+@inline function dynamic_host_findNeighbourParticlesFromCells!(
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
     domain::AbstractDomain{IT, FT, Dimension},
     neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy},
@@ -218,9 +290,64 @@ end
     Dimension <: AbstractDimension,
     PeriodicBoundaryPolicy <: AbstractPeriodicBoundaryPolicy,
 }
+    static_search!(particle_system, domain, neighbour_system; n_threads = n_threads) # default `static_search!`
+    return nothing
+end
+
+@inline function static_search!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+    domain::AbstractDomain{IT, FT, Dimension},
+    neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy};
+    n_threads::Integer = kDefaultThreadNumber,
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT <: AbstractArray,
+    Backend,
+    Dimension <: AbstractDimension,
+    PeriodicBoundaryPolicy <: AbstractPeriodicBoundaryPolicy,
+}
     Class.clean!(neighbour_system)
     n_particles::IT = Class.get_n_particles(particle_system)
-    host_insertParticlesIntoCells!(particle_system, domain, neighbour_system, n_particles; n_threads = n_threads)
-    host_findNeighbourParticlesFromCells!(particle_system, domain, neighbour_system, n_particles; n_threads = n_threads)
+    static_host_insertParticlesIntoCells!(particle_system, domain, neighbour_system, n_particles; n_threads = n_threads)
+    static_host_findNeighbourParticlesFromCells!(
+        particle_system,
+        domain,
+        neighbour_system,
+        n_particles;
+        n_threads = n_threads,
+    )
+    return nothing
+end
+
+@inline function dynamic_search!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+    domain::AbstractDomain{IT, FT, Dimension},
+    neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy};
+    n_threads::Integer = kDefaultThreadNumber,
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT <: AbstractArray,
+    Backend,
+    Dimension <: AbstractDimension,
+    PeriodicBoundaryPolicy <: AbstractPeriodicBoundaryPolicy,
+}
+    Class.clean!(neighbour_system)
+    n_particles::IT = Class.get_n_particles(particle_system)
+    dynamic_host_insertParticlesIntoCells!(
+        particle_system,
+        domain,
+        neighbour_system,
+        n_particles;
+        n_threads = n_threads,
+    )
+    dynamic_host_findNeighbourParticlesFromCells!(
+        particle_system,
+        domain,
+        neighbour_system,
+        n_particles;
+        n_threads = n_threads,
+    )
     return nothing
 end

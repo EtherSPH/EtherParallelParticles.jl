@@ -72,6 +72,7 @@
                 end
                 EtherParallelParticles.Class.toDevice!(particle_system)
                 EtherParallelParticles.Algorithm.search!(particle_system, domain, neighbour_system)
+                EtherParallelParticles.Algorithm.dynamic_search!(particle_system, domain, neighbour_system)
                 EtherParallelParticles.Class.toHost!(particle_system)
                 @test particle_system.host_base_.int_properties_[:, particle_system.basic_index_.nCount] ==
                       [4, 5, 3, 5, 6, 3, 4, 5, 3]
@@ -221,6 +222,7 @@
                 end
                 EtherParallelParticles.Class.toDevice!(particle_system)
                 EtherParallelParticles.Algorithm.search!(particle_system, domain, neighbour_system)
+                EtherParallelParticles.Algorithm.dynamic_search!(particle_system, domain, neighbour_system)
                 EtherParallelParticles.Class.toHost!(particle_system)
                 @test particle_system.host_base_.int_properties_[:, particle_system.basic_index_.nCount] ==
                       [4, 5, 3, 5, 6, 3, 4, 5, 3]
@@ -370,6 +372,7 @@
                 end
                 EtherParallelParticles.Class.toDevice!(particle_system)
                 EtherParallelParticles.Algorithm.search!(particle_system, domain, neighbour_system)
+                EtherParallelParticles.Algorithm.dynamic_search!(particle_system, domain, neighbour_system)
                 EtherParallelParticles.Class.toHost!(particle_system)
                 @test particle_system.host_base_.int_properties_[:, particle_system.basic_index_.nCount] ==
                       [4, 5, 3, 5, 6, 3, 4, 5, 3]

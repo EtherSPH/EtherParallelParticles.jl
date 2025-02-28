@@ -12,9 +12,8 @@ using EtherParallelParticles
 using KernelAbstractions
 
 const USING_CPU = true
-# choose only one gpu backend
-# TODO: add `AMDGPU.jl` test, literally it should work as well
-const USING_CUDA, USING_ROC, USING_ONEAPI = false, false, true
+# TODO: add `AMDGPU.jl` & `Metal.jl` test, literally it should work as well
+const USING_CUDA, USING_ROC, USING_ONEAPI, USING_METAL = false, false, true, false
 
 @testset "EtherParallelParticles" begin
     include("Utility/UtilityTest.jl")

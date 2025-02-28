@@ -22,3 +22,11 @@ include("NeighbourSearch.jl")
 include("Action.jl")
 
 end # module Algorithm
+
+using EtherParallelParticles.Algorithm: search!, static_search!, dynamic_search!
+using EtherParallelParticles.Algorithm: selfaction!, static_selfaction!, dynamic_selfaction!
+using EtherParallelParticles.Algorithm: interaction!, static_interaction!, dynamic_interaction!
+
+export search!, static_search!, dynamic_search!
+export selfaction!, static_selfaction!, dynamic_selfaction!
+export interaction!, static_interaction!, dynamic_interaction!

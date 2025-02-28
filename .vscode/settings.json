@@ -95,7 +95,7 @@
             "name": "algorithm",
             "base": "tools",
             "color": "light-blue-500",
-            "lightColor": "light-blue-700",
+            "lightColor": "light-blue-500",
             "folderNames": [
                 "algorithm",
             ],
@@ -113,6 +113,30 @@
             ],
             "rootFolderNames": [
                 "head"
+            ]
+        },
+        {
+            "name": "sph",
+            "base": "shader",
+            "color": "blue-500",
+            "lightColor": "light-blue-900",
+            "folderNames": [
+                "sph",
+            ],
+            "rootFolderNames": [
+                "sph"
+            ]
+        },
+        {
+            "name": "kernel",
+            "base": "expo",
+            "color": "yellow-500",
+            "lightColor": "yellow-900",
+            "folderNames": [
+                "kernel",
+            ],
+            "rootFolderNames": [
+                "kernel"
             ]
         },
     ],
