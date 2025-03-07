@@ -7,12 +7,20 @@
   @ description:
  =#
 
+abstract type AbstractOffset end
+
+struct offset{N} <: AbstractOffset end
+
 @inline function offset(start::Integer, off_set::Integer)::typeof(start)
-    return start + off_set - 1
+    return start + off_set
 end
 
-@inline function offset(start::Integer, off_set::Integer, step::Integer)::typeof(start)
-    return start + (off_set - 1) * step
+@inline function offset{N}(start::Integer)::typeof(start) where {N}
+    return start + N
+end
+
+@inline function offset{N}(start::Integer, off_set::Integer)::typeof(start) where {N}
+    return start + off_set * N
 end
 
 @inline function getItem(row::Integer, column::Integer, data)::eltype(data)

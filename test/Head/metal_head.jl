@@ -13,8 +13,8 @@ import Pkg
 Pkg.add("Metal")
 using Metal
 
-IT = Int32
-FT = Float32
-CT = Metal.MtlArray
-Backend = Metal.MetalBackend()
-parallel = EtherParallelParticles.Environment.Parallel{IT, FT, CT, Backend}()
+const IT = Int32
+const FT = Float32
+const CT = Metal.MtlArray
+const Backend = Metal.MetalBackend()
+const parallel = EtherParallelParticles.Environment.Parallel{IT, FT, CT, Backend}()

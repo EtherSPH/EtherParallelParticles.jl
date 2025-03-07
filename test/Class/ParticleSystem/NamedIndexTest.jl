@@ -8,7 +8,6 @@
  =#
 
 @testset "NamedIndex" begin
-    IT = Int32
     dim = 2
     neighbour_count = 50
     int_named_tuple = (Tag = 1, nCount = 1, nIndex = 1 * neighbour_count)

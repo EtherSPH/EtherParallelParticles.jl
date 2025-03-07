@@ -33,11 +33,14 @@ include("LinearAlgebra.jl")
 
 export __Scalar, __Vector, __Matrix, Sca, Vec, Mat
 export Unary, Binary
+export capacity
 
 end # module Math
 
 using EtherParallelParticles.Math: Sca, Vec, Mat
 using EtherParallelParticles.Math: Unary, Binary
+using EtherParallelParticles.Math: capacity
 
 export Sca, Vec, Mat
 export Unary, Binary
+export capacity

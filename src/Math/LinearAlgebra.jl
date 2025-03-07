@@ -18,7 +18,7 @@ struct dot{Pattern <: AbstractPattern, N} <: AbstractOperator end
     column_2::Integer,
     data,
 )::eltype(data) where {N}
-    result::eltype(data) = 0.0
+    result::eltype(data) = 0
     for i::typeof(column_1) in 0:(N - 1)
         @inbounds result += data[row_1, column_1 + i] * data[row_2, column_2 + i]
     end
@@ -39,7 +39,7 @@ end
 end
 
 @inline function dot{Unary{__Vector}, N}(row::Integer, column::Integer, data)::eltype(data) where {N}
-    result::eltype(data) = 0.0
+    result::eltype(data) = 0
     for i::typeof(column) in 0:(N - 1)
         @inbounds result += data[row, column + i] * data[row, column + i]
     end

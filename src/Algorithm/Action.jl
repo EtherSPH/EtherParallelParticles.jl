@@ -10,13 +10,39 @@
 # ! `action!` function should be decorated with `@inline` macro
 # ! otherwise a `gpu malloc error` may occur
 
+"""
+# ! which is important is that on device,
+# ! all variables are obtained from `offset`.
+# ! thus count from 0 is more natural which is against the julia convention
+"""
 @inline function J(
     I::Integer,
     NI::Integer,
     ps_int_properties,
     parameters::NamedTuple, # must have field named `nIndex`
 )::eltype(ps_int_properties)
-    @inbounds return ps_int_properties[I, parameters.nIndex + NI - 1]
+    @inbounds return ps_int_properties[I, parameters.nIndex + NI]
+end
+
+@inline function nullselfaction!(
+    ::Type{Dimension},
+    I::Integer,
+    ps_int_properties,
+    ps_float_properties,
+    parameters::NamedTuple,
+)::Nothing where {N, Dimension <: AbstractDimension{N}}
+    return nothing
+end
+
+@inline function nullinteraction!(
+    ::Type{Dimension},
+    I::Integer,
+    NI::Integer,
+    ps_int_properties,
+    ps_float_properties,
+    parameters::NamedTuple,
+)::Nothing where {N, Dimension <: AbstractDimension{N}}
+    return nothing
 end
 
 # * ==================== selfaction! ==================== * #
@@ -114,8 +140,8 @@ end
 ) where {IT <: Integer, N, Dimension <: AbstractDimension{N}}
     I::eltype(ps_int_properties) = @index(Global)
     @inbounds if ps_is_alive[I] == 1
-        NI::IT = IT(1)
-        @inbounds while NI <= ps_int_properties[I, index_nCount]
+        NI::IT = IT(0)
+        @inbounds while NI < ps_int_properties[I, index_nCount]
             action!(dimension, I, NI, ps_int_properties, ps_float_properties, parameters)
             NI += IT(1)
         end

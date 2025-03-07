@@ -13,6 +13,6 @@ struct Dimension1D <: AbstractDimension{1} end
 struct Dimension2D <: AbstractDimension{2} end
 struct Dimension3D <: AbstractDimension{3} end
 
-@inline function dimension(::Type{<:AbstractDimension{N}}) where {N}
+@inline function dimension(::Type{Dimension}) where {N, Dimension <: AbstractDimension{N}}
     return N
 end

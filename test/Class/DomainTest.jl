@@ -8,8 +8,6 @@
  =#
 
 @testset "Domain" begin
-    IT = Int32
-    FT = Float32
     x_0 = -1.0
     y_0 = -2.0
     x_1 = 3.0

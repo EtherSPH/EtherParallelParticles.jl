@@ -7,68 +7,19 @@
   @ description:
  =#
 
-@testset "NeighbourSystemBase" begin
-    if USING_CPU == true
-        @testset "NeighbourSystemBase CPU" begin
-            include("../../Head/cpu_test_head.jl")
-            domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
-            # 5 * 4 = 20 cells
-            # 4 | 6 | 6 | 6 | 4
-            # --|---|---|---|--
-            # 6 | 9 | 9 | 9 | 6
-            # --|---|---|---|--
-            # 6 | 9 | 9 | 9 | 6
-            # --|---|---|---|--
-            # 4 | 6 | 6 | 6 | 4
-            neighbour_system_base = EtherParallelParticles.Class.NeighbourSystemBase(parallel, domain)
-            @test EtherParallelParticles.Environment.toHost(
-                parallel,
-                neighbour_system_base.neighbour_cell_index_count_,
-            ) == [4, 6, 6, 6, 4, 6, 9, 9, 9, 6, 6, 9, 9, 9, 6, 4, 6, 6, 6, 4]
-            @test size(neighbour_system_base.neighbour_cell_index_count_) == (20,)
-            @test size(neighbour_system_base.neighbour_cell_index_list_) == (20, 9)
-        end
-    end
-    if USING_CUDA == true
-        @testset "NeighbourSystemBase CUDA" begin
-            include("../../Head/cuda_test_head.jl")
-            domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
-            # 5 * 4 = 20 cells
-            # 4 | 6 | 6 | 6 | 4
-            # --|---|---|---|--
-            # 6 | 9 | 9 | 9 | 6
-            # --|---|---|---|--
-            # 6 | 9 | 9 | 9 | 6
-            # --|---|---|---|--
-            # 4 | 6 | 6 | 6 | 4
-            neighbour_system_base = EtherParallelParticles.Class.NeighbourSystemBase(parallel, domain)
-            @test EtherParallelParticles.Environment.toHost(
-                parallel,
-                neighbour_system_base.neighbour_cell_index_count_,
-            ) == [4, 6, 6, 6, 4, 6, 9, 9, 9, 6, 6, 9, 9, 9, 6, 4, 6, 6, 6, 4]
-            @test size(neighbour_system_base.neighbour_cell_index_count_) == (20,)
-            @test size(neighbour_system_base.neighbour_cell_index_list_) == (20, 9)
-        end
-    end
-    if USING_ONEAPI == true
-        @testset "NeighbourSystemBase ONEAPI" begin
-            include("../../Head/oneapi_test_head.jl")
-            domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
-            # 5 * 4 = 20 cells
-            # 4 | 6 | 6 | 6 | 4
-            # --|---|---|---|--
-            # 6 | 9 | 9 | 9 | 6
-            # --|---|---|---|--
-            # 6 | 9 | 9 | 9 | 6
-            # --|---|---|---|--
-            # 4 | 6 | 6 | 6 | 4
-            neighbour_system_base = EtherParallelParticles.Class.NeighbourSystemBase(parallel, domain)
-            @test EtherParallelParticles.Environment.toHost(
-                parallel,
-                neighbour_system_base.neighbour_cell_index_count_,
-            ) == [4, 6, 6, 6, 4, 6, 9, 9, 9, 6, 6, 9, 9, 9, 6, 4, 6, 6, 6, 4]
-            @test size(neighbour_system_base.neighbour_cell_index_count_) == (20,)
-            @test size(neighbour_system_base.neighbour_cell_index_list_) == (20, 9)
-        end
-    end
+@testset "NeighbourSystemBase $DEVICE" begin
+    domain = EtherParallelParticles.Class.Domain2D{IT, FT}(0.15, 0.1, 0.2, 0.9, 0.9)
+    # 5 * 4 = 20 cells
+    # 4 | 6 | 6 | 6 | 4
+    # --|---|---|---|--
+    # 6 | 9 | 9 | 9 | 6
+    # --|---|---|---|--
+    # 6 | 9 | 9 | 9 | 6
+    # --|---|---|---|--
+    # 4 | 6 | 6 | 6 | 4
+    neighbour_system_base = EtherParallelParticles.Class.NeighbourSystemBase(parallel, domain)
+    @test EtherParallelParticles.Environment.toHost(parallel, neighbour_system_base.neighbour_cell_index_count_) ==
+          [4, 6, 6, 6, 4, 6, 9, 9, 9, 6, 6, 9, 9, 9, 6, 4, 6, 6, 6, 4]
+    @test size(neighbour_system_base.neighbour_cell_index_count_) == (20,)
+    @test size(neighbour_system_base.neighbour_cell_index_list_) == (20, 9)
 end

@@ -1,6 +1,6 @@
 #=
   @ author: bcynuaa <bcynuaa@163.com>
-  @ date: 2025/02/24 19:37:40
+  @ date: 2025/02/10 17:56:09
   @ license: MIT
   @ language: Julia
   @ declaration: `EtherParallelParticles` a parallel particle-based simulator supporting multi-backend gpu in julia.
@@ -10,11 +10,11 @@
 using EtherParallelParticles
 using KernelAbstractions
 import Pkg
-Pkg.add("AMDGPU")
-using AMDGPU
+Pkg.add("oneAPI")
+using oneAPI
 
-IT = Int32
-FT = Float32
-CT = AMDGPU.ROCArray
-Backend = AMDGPU.ROCBackend()
-parallel = EtherParallelParticles.Environment.Parallel{IT, FT, CT, Backend}()
+const IT = Int32
+const FT = Float32
+const CT = oneArray
+const Backend = oneAPI.oneAPIBackend()
+const parallel = EtherParallelParticles.Environment.Parallel{IT, FT, CT, Backend}()

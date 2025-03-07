@@ -18,8 +18,8 @@ using EtherParallelParticles.Class
 const kDefaultThreadNumber = 256
 const kDefaultMaxNeighbourNumber = 50
 
-include("NeighbourSearch.jl")
 include("Action.jl")
+include("NeighbourSearch.jl")
 
 end # module Algorithm
 

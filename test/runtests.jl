@@ -11,9 +11,9 @@ using Test
 using EtherParallelParticles
 using KernelAbstractions
 
-const USING_CPU = true
-# TODO: add `AMDGPU.jl` & `Metal.jl` test, literally it should work as well
-const USING_CUDA, USING_ROC, USING_ONEAPI, USING_METAL = false, false, true, false
+# support for `cpu`, `cuda`, `oneapi`, `rocm`, `metal`
+const DEVICE = "oneapi"
+include("Head/$(DEVICE)_head.jl")
 
 @testset "EtherParallelParticles" begin
     include("Utility/UtilityTest.jl")

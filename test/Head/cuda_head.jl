@@ -13,8 +13,8 @@ import Pkg
 Pkg.add("CUDA")
 using CUDA
 
-IT = Int32
-FT = Float32
-CT = CuArray
-Backend = CUDA.CUDABackend()
-parallel = EtherParallelParticles.Environment.Parallel{IT, FT, CT, Backend}()
+const IT = Int32
+const FT = Float32
+const CT = CuArray
+const Backend = CUDA.CUDABackend()
+const parallel = EtherParallelParticles.Environment.Parallel{IT, FT, CT, Backend}()

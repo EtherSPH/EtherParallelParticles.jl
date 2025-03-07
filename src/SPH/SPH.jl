@@ -10,5 +10,7 @@
 module SPH
 
 include("Kernel/Kernel.jl")
+include("Macro/Macro.jl")
+include("Library/Library.jl")
 
 end
