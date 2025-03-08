@@ -86,8 +86,8 @@ end
     gy::Real = 0,
 )::Nothing where {Dimension <: AbstractDimension{2}}
     g_dot_x::@float() = @float 0.0
-    g_dot_x += @rvec(@ij, 0) * gx
-    g_dot_x += @rvec(@ij, 1) * gy
+    g_dot_x += @rvec(@ij, 0) * @float(gx)
+    g_dot_x += @rvec(@ij, 1) * @float(gy)
     @inbounds @wv(@i) += @w(@ij) * @vol(@j)
     @inbounds @wv_p(@i) += @wv(@i) * (max(@p(@j), @float(p0)) + max(@rho(@j) * g_dot_x, @float(p0)))
     return nothing
@@ -106,9 +106,9 @@ end
     gz::Real = 0,
 )::Nothing where {Dimension <: AbstractDimension{3}}
     g_dot_x::@float() = @float 0.0
-    g_dot_x += @rvec(@ij, 0) * gx
-    g_dot_x += @rvec(@ij, 1) * gy
-    g_dot_x += @rvec(@ij, 2) * gz
+    g_dot_x += @rvec(@ij, 0) * @float(gx)
+    g_dot_x += @rvec(@ij, 1) * @float(gy)
+    g_dot_x += @rvec(@ij, 2) * @float(gz)
     @inbounds @wv(@i) += @w(@ij) * @vol(@j)
     @inbounds @wv_p(@i) += @wv(@i) * (max(@p(@j), @float(p0)) + max(@rho(@j) * g_dot_x, @float(p0)))
     return nothing
