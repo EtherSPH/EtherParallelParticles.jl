@@ -8,21 +8,29 @@
  =#
 
 # * use in scope with `PM` and `IP`
-const kIntScalarDict = Dict("Tag" => ["tag", "Type", "type"], "nCount" => ["count"])
+const kIntScalarDict = Dict("Tag" => ["tag"], "nCount" => ["count"])
 # * use in scope with `PM` and `FP`
 const kFloatScalarDict = Dict(
     "Mass" => ["mass", "m"],
-    "Volume" => ["V", "volume"],
+    "Volume" => ["vol", "volume"],
     "Density" => ["rho", "ρ", "density"],
     "dDensity" => ["drho", "dρ", "density_ratio"],
     "Pressure" => ["p", "pressure", "P"],
     "Gap" => ["gap", "Δx", "Δp"],
     "H" => ["h"],
+    "SumWeight" => ["wv", "∑wv"], # ∑wᵢⱼVⱼ
+    "SumWeightedDensity" => ["wv_rho", "∑wv_rho", "wv_ρ", "∑wv_ρ"], # ∑wᵢⱼVⱼρⱼ
+    "SumWeightedPressure" => ["wv_p", "∑wv_p"], # ∑wᵢⱼVⱼPⱼ
 )
 # * use in scope with `PM` and `NI` and `IP`
 const kNeighbourIntScalarDict = Dict("nIndex" => ["n_index"])
 # * use in scope with `PM` and `NI` and `FP`
-const kNeighbourFloatScalarDict = Dict("nR" => ["n_r"], "nW" => ["n_w"], "nDW" => ["n_dw", "n_∇w"])
+const kNeighbourFloatScalarDict = Dict(
+    "nR" => ["r", "n_r"],
+    "nW" => ["w", "n_w"],
+    "nDW" => ["dw", "∇w", "n_dw", "n_∇w"],
+    "nHInv" => ["hinv", "n_h_inv", "h_inv"],
+)
 
 # """
 # eg. 

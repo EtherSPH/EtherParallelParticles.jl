@@ -22,7 +22,21 @@ require:
     FP,
     PM::NamedTuple,
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @V(@i) = @mass(@i) / @rho(@i)
+    @inbounds @vol(@i) = @mass(@i) / @rho(@i)
+    return nothing
+end
+
+@inline function acceleration!(
+    ::Type{Dimension},
+    I::Integer,
+    IP,
+    FP,
+    PM::NamedTuple;
+)::Nothing where {N, Dimension <: AbstractDimension{N}}
+    # copy `du` to `a`
+    @inbounds for i::eltype(IP) in 0:(N - 1)
+        @inbounds @a(@i, i) = @du(@i, i)
+    end
     return nothing
 end
 
@@ -83,8 +97,8 @@ require:
     PM::NamedTuple;
     dt::Real = 0,
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @rho(I) += @drho(I) * eltype(FP)(dt)
-    @inbounds @rho(I) = eltype(FP)(0)
+    @inbounds @rho(I) += @drho(I) * @float(dt)
+    @inbounds @rho(I) = @float 0.0
     return nothing
 end
 

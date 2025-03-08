@@ -10,11 +10,13 @@
 module Library
 
 using EtherParallelParticles.Environment
-using EtherParallelParticles.Algorithm
 using EtherParallelParticles.Math
 using EtherParallelParticles.SPH.Macro
+using EtherParallelParticles.SPH.Kernel
 
 include("UpdateState.jl")
+include("Kernel.jl")
 include("Continuity.jl")
+include("Pressure.jl")
 
 end # module Library

@@ -26,6 +26,7 @@ struct Binary{Tensor1 <: AbstractTensor, Tensor2 <: AbstractTensor} <: AbstractP
 abstract type AbstractOperator <: Function end
 
 include("OptimizedFunction.jl")
+include("Mean.jl")
 include("Index.jl")
 include("Basic.jl")
 include("Broadcast.jl")

@@ -20,4 +20,6 @@ include("Head/$(DEVICE)_head.jl")
     include("Environment/EnvironmentTest.jl")
     include("Class/ClassTest.jl")
     include("Algorithm/AlgorithmTest.jl")
+    include("Math/MathTest.jl")
+    include("SPH/SPHTest.jl")
 end

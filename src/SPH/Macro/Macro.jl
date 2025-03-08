@@ -22,7 +22,7 @@ macro j()
     return esc(:(IP[I, PM.nIndex + NI]))
 end
 
-macro ni()
+macro ij()
     return esc(:(NI))
 end
 
@@ -50,7 +50,7 @@ macro float(x)
     return esc(:(eltype(FP)($x)))
 end
 
-export @i, @j, @ni
+export @i, @j, @ij
 export @self_args, @inter_args
 export @int, @float
 

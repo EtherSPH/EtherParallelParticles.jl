@@ -12,9 +12,10 @@ const kFloatVectorDict = Dict(
     "PositionVec" => ["x", "Position", "position"],
     "VelocityVec" => ["u", "Velocity", "velocity"],
     "dVelocityVec" => ["du", "dVelocity", "dvelocity"],
+    "AccelerationVec" => ["a", "Acceleration", "acceleration"],
 )
 # * use in scope with `PM` and `NI` and `FP`
-const kNeighbourFloatVectorDict = Dict("nRVec" => ["n_rvec"])
+const kNeighbourFloatVectorDict = Dict("nRVec" => ["n_rvec", "rvec"])
 
 # """
 # eg.

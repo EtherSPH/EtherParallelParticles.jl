@@ -17,7 +17,7 @@
 )::eltype(FP) where {N, Dimension <: AbstractDimension{N}}
     v_dot_x::@float() = @float 0.0
     for i::@int() in 0:(N - 1)
-        @inbounds v_dot_x += @n_rvec(NI, i) * (@u(@i, i) - @u(@j, i))
+        @inbounds v_dot_x += @rvec(NI, i) * (@u(@i, i) - @u(@j, i))
     end
     return v_dot_x
 end
@@ -30,7 +30,7 @@ end
     FP,
     PM::NamedTuple;
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @drho(@i) += @mass(@j) * vdotx(@inter_args) * @n_dw(@ni) / @n_r(@ni)
+    @inbounds @drho(@i) += @mass(@j) * vdotx(@inter_args) * @dw(@ij) / @r(@ij)
     return nothing
 end
 
@@ -42,6 +42,6 @@ end
     FP,
     PM::NamedTuple;
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @drho(@i) += @rho(@j) * @V(@j) * vdotx(@inter_args) * @n_dw(@ni) / @n_dw(@ni)
+    @inbounds @drho(@i) += @rho(@j) * @vol(@j) * vdotx(@inter_args) * @dw(@ij) / @dw(@ij)
     return nothing
 end
