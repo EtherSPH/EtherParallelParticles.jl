@@ -9,6 +9,7 @@
 
 module Utility
 
+using Dates
 using OrderedCollections
 
 @inline function convertSymbolToString(dict::AbstractDict; dicttype = OrderedDict)::AbstractDict
@@ -34,6 +35,24 @@ end
     key_s = Tuple(Symbol.(keys(dict)))
     value_s = Tuple(values(dict))
     return NamedTuple{key_s}(value_s)
+end
+
+@inline function convertPureNumberFromNamedTupleToDict(named_tuple::NamedTuple; dicttype = OrderedDict)::AbstractDict
+    key_s = collect(keys(named_tuple))
+    value_s = collect(values(named_tuple))
+    pure_keys = Symbol[]
+    pure_values = []
+    for i in eachindex(value_s)
+        if typeof(value_s[i]) <: Real
+            push!(pure_keys, key_s[i])
+            push!(pure_values, value_s[i])
+        end
+    end
+    return dicttype(pure_keys .=> pure_values)
+end
+
+@inline function timeStamp(; format = "yyyy_mm_dd_HH_MM_SS")::String
+    return Dates.format(now(), format)
 end
 
 end # module Utility

@@ -10,12 +10,16 @@
 module EtherParallelParticles
 
 include("Utility/Utility.jl")
+include("Math/Math.jl")
 include("Environment/Environment.jl")
 include("Class/Class.jl")
 include("Algorithm/Algorithm.jl")
-include("Math/Math.jl")
+include("DataIO/DataIO.jl")
 include("SPH/SPH.jl")
 
-export Utility, Environment, Class, Algorithm, Math, SPH
+export Utility, Math
+export Environment, Class, Algorithm
+export DataIO
+export SPH
 
 end # module EtherParallelParticles

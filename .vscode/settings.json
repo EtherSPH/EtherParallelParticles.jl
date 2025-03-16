@@ -151,5 +151,30 @@
                 "macro"
             ]
         },
+        {
+            "name": "dataio",
+            "base": "database",
+            "color": "yellow-500",
+            "lightColor": "yellow-700",
+            "folderNames": [
+                "dataio",
+            ],
+            "rootFolderNames": [
+                "dataio"
+            ]
+        },
+        {
+            "name": "writer",
+            "base": "export",
+            "color": "oragne-500",
+            "lightColor": "orange-700",
+            "folderNames": [
+                "writer",
+            ],
+            "rootFolderNames": [
+                "writer"
+            ]
+        },
     ],
+    "peacock.remoteColor": "#42b883",
 }

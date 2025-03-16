@@ -109,12 +109,13 @@ end
     g_dot_x += @rvec(@ij, 0) * @float(gx)
     g_dot_x += @rvec(@ij, 1) * @float(gy)
     g_dot_x += @rvec(@ij, 2) * @float(gz)
-    @inbounds @wv(@i) += @w(@ij) * @vol(@j)
-    @inbounds @wv_p(@i) += @wv(@i) * (max(@p(@j), @float(p0)) + max(@rho(@j) * g_dot_x, @float(p0)))
+    wv::@float() = @w(@ij) * @vol(@j)
+    @inbounds @wv(@i) += wv
+    @inbounds @wv_p(@i) += wv * (max(@p(@j), @float(p0)) + max(@rho(@j) * g_dot_x, @float(p0)))
     return nothing
 end
 
-@inline function estimatePressure!(
+@inline function extrapolatePressure!(
     ::Type{Dimension},
     I::Integer,
     IP,

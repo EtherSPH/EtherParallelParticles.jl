@@ -90,6 +90,9 @@
         SPH.Library.balancedPressure!(d, i, ni, ip, fp, pm; coefficient = p_c)
         SPH.Library.densityWeightedPressure!(d, i, ni, ip, fp, pm; coefficient = p_c)
         SPH.Library.extrapolatePressure!(d, i, ni, ip, fp, pm; p0 = 0.0, gx = 0.0, gy = -9.8)
+        SPH.Library.classicViscosity!(d, i, ni, ip, fp, pm; mu = 1e-3)
+        SPH.Library.artificialViscosity!(d, i, ni, ip, fp, pm; alpha = 0.1, beta = 0.1, c = pm.c_0)
+        SPH.Library.kernelFilter!(d, i, ni, ip, fp, pm)
     end
     @inline function self!(d, i, ip, fp, pm)
         SPH.Library.volume!(d, i, ip, fp, pm)
@@ -99,7 +102,8 @@
         SPH.Library.accelerate!(d, i, ip, fp, pm; dt = 0.1)
         SPH.Library.move!(d, i, ip, fp, pm; dt = 0.1)
         SPH.Library.accelerate_move!(d, i, ip, fp, pm; dt = 0.1)
-        SPH.Library.estimatePressure!(d, i, ip, fp, pm; p0 = 0.0)
+        SPH.Library.extrapolatePressure!(d, i, ip, fp, pm; p0 = 0.0)
+        SPH.Library.kernelFilter!(d, i, ip, fp, pm, kernel)
     end
     Algorithm.selfaction!(particle_system, self!)
     Algorithm.interaction!(particle_system, inter!)

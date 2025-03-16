@@ -1,0 +1,82 @@
+{
+    "parallel": {
+        "int": "Int32",
+        "float": "Float32",
+        "backend": "oneapi",
+        "device": 1
+    },
+    "domain": {
+        "dimension": 2,
+        "gap": 0.15,
+        "first_x": 0.1,
+        "first_y": 0.2,
+        "first_z": 0.0,
+        "last_x": 0.9,
+        "last_y": 0.8,
+        "last_z": 0.0
+    },
+    "particle_system": {
+        "n_particles": 100,
+        "capacity_expand": "n -> n + 100",
+        "load": {
+            "mode": "initial",
+            "file": "demo.jld2"
+        },
+        "int_named_tuple": {
+            "Tag": 1,
+            "nCount": 1,
+            "nIndex": 40
+        },
+        "float_named_tuple": {
+            "PositionVec": 2,
+            "VelocityVec": 2,
+            "dVelocityVec": 2,
+            "AccelerationVec": 2,
+            "Mass": 1,
+            "Density": 1,
+            "dDensity": 1,
+            "Volume": 1,
+            "Pressure": 1,
+            "Gap": 1,
+            "H": 1,
+            "SumWeight": 1,
+            "SumWeightedDensity": 1,
+            "SumWeightedPressure": 1,
+            "nW": 40,
+            "nDW": 40,
+            "nHInv": 40,
+            "nRVec": 80,
+            "nR": 40
+        },
+        "basic_parameters": {
+            "c_0": 340.0,
+            "gamma": 1.4,
+            "mu": 1e-3
+        },
+        "basic_index_map_dict": {
+            "PositionVec": "PositionVec",
+            "Tag": "Tag",
+            "nCount": "nCount",
+            "nIndex": "nIndex",
+            "nRVec": "nRVec",
+            "nR": "nR"
+        }
+    },
+    "neighbour_system": {
+        "active_pair": [
+            [1, 1], [1, 2], [2, 1]
+        ],
+        "periodic_boundary_policy": {
+            "type": "none",
+            "axis": [false, false, false]
+        },
+        "max_neighbour_number": 50,
+        "n_threads": 256
+    },
+    "writer": {
+        "path": "demo",
+        "file_name": "result",
+        "connect": "_",
+        "digits": 4
+    }
+}

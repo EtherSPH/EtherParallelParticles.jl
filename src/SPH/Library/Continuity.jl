@@ -7,19 +7,17 @@
   @ description:
  =#
 
-@inline function vdotx(
+@inline function continuity!(
     ::Type{Dimension},
     I::Integer,
-    NI::Integer,
     IP,
     FP,
     PM::NamedTuple;
-)::eltype(FP) where {N, Dimension <: AbstractDimension{N}}
-    v_dot_x::@float() = @float 0.0
-    for i::@int() in 0:(N - 1)
-        @inbounds v_dot_x += @rvec(NI, i) * (@u(@i, i) - @u(@j, i))
-    end
-    return v_dot_x
+    dt::Real = 0,
+)::Nothing where {N, Dimension <: AbstractDimension{N}}
+    @inbounds @rho(I) += @drho(I) * @float(dt)
+    @inbounds @rho(I) = @float 0.0
+    return nothing
 end
 
 @inline function classicContinuity!(

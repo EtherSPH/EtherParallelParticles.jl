@@ -194,3 +194,47 @@ end
     transfer!(Backend, particle_system.host_base_, particle_system.device_base_)
     return nothing
 end
+
+@inline function set_n_particles!(
+    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
+    n_particles::Integer,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    @inbounds particle_system.host_base_.n_particles_[1] = IT(n_particles)
+    fill!(particle_system.host_base_.is_alive_, IT(0))
+    particle_system.host_base_.is_alive_[1:n_particles] .= IT(1)
+    return nothing
+end
+
+@inline function set_is_movable!(
+    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
+    is_movable::Array{<:Integer, 1},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    n_particles = get_n_particles(particle_system)
+    @assert n_particles <= get_n_capacity(particle_system)
+    @inbounds particle_system.host_base_.is_movable_[1:n_particles] .= IT.(is_movable)
+    return nothing
+end
+
+@inline function set_int_properties!(
+    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
+    int_properties::Array{<:Integer, 2},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    n_particles = size(int_properties, 1)
+    n_int_capacity = size(int_properties, 2)
+    @assert n_particles <= get_n_capacity(particle_system)
+    @assert n_int_capacity == get_n_int_capacity(particle_system)
+    @inbounds particle_system.host_base_.int_properties_[1:n_particles, :] .= IT.(int_properties)
+    return nothing
+end
+
+@inline function set_float_properties!(
+    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
+    float_properties::Array{<:AbstractFloat, 2},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    n_particles = size(float_properties, 1)
+    n_float_capacity = size(float_properties, 2)
+    @assert n_particles <= get_n_capacity(particle_system)
+    @assert n_float_capacity == get_n_float_capacity(particle_system)
+    @inbounds particle_system.host_base_.float_properties_[1:n_particles, :] .= FT.(float_properties)
+    return nothing
+end
