@@ -8,7 +8,7 @@
  =#
 
 # * use in scope with `PM` and `IP`
-const kIntScalarDict = Dict("Tag" => ["tag"], "nCount" => ["count"])
+const kIntScalarDict = Dict("Tag" => ["tag"], "IsMovable" => ["is_movable", "not_fixed"], "nCount" => ["count"])
 # * use in scope with `PM` and `FP`
 const kFloatScalarDict = Dict(
     "Mass" => ["mass", "m"],

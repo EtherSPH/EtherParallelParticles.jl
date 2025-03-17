@@ -175,6 +175,18 @@
                 "writer"
             ]
         },
+        {
+            "name": "raw",
+            "base": "element",
+            "color": "gray-500",
+            "lightColor": "gray-700",
+            "folderNames": [
+                "raw",
+            ],
+            "rootFolderNames": [
+                "raw"
+            ]
+        }
     ],
     "peacock.remoteColor": "#42b883",
 }

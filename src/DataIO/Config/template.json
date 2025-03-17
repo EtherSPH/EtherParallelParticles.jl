@@ -2,7 +2,7 @@
     "parallel": {
         "int": "Int32",
         "float": "Float32",
-        "backend": "oneapi",
+        "backend": "cpu",
         "device": 1
     },
     "domain": {
@@ -24,6 +24,7 @@
         },
         "int_named_tuple": {
             "Tag": 1,
+            "IsMovable": 1,
             "nCount": 1,
             "nIndex": 40
         },

@@ -16,7 +16,7 @@
     dim = 2
     neighbour_count = 50
     n_particles = 9
-    int_named_tuple = (Tag = 1, nCount = 1, nIndex = 1 * neighbour_count)
+    int_named_tuple = (Tag = 1, IsMovable = 1, nCount = 1, nIndex = 1 * neighbour_count)
     float_named_tuple = (
         PositionVec = dim,
         nRVec = dim * neighbour_count,

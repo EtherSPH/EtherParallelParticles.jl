@@ -14,9 +14,9 @@ using CSV
 using DataFrames
 using CodecZlib
 using OrderedCollections
-using ProgressMeter
+# using ProgressMeter
 using JSON
-# using KernelAbstractions
+using KernelAbstractions
 
 using EtherParallelParticles.Utility
 using EtherParallelParticles.Environment

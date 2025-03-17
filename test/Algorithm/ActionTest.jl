@@ -16,7 +16,7 @@
     dim = 2
     neighbour_count = 50
     n_particles = 9
-    int_named_tuple = (Tag = 1, nCount = 1, nIndex = 1 * neighbour_count)
+    int_named_tuple = (Tag = 1, IsMovable = 1, nCount = 1, nIndex = 1 * neighbour_count)
     float_named_tuple = (RVec = dim, nRVec = dim * neighbour_count, nR = neighbour_count)
     parameters = (c_0 = 340.0, gamma = 7, mu = 1e-3)
     capacityExpand(n)::typeof(n) = n

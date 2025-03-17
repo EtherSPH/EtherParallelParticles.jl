@@ -15,7 +15,7 @@
         dim = 2
         neighbour_count = 50
         n_particles = 100
-        int_named_tuple = (Tag = 1, nCount = 1, nIndex = 1 * neighbour_count)
+        int_named_tuple = (Tag = 1, IsMovable = 1, nCount = 1, nIndex = 1 * neighbour_count)
         float_named_tuple = (
             PositionVec = dim,
             Mass = 1,
@@ -54,7 +54,7 @@
         @test EtherParallelParticles.Class.get_n_particles(particle_system) == n_particles
         @test EtherParallelParticles.Class.get_n_capacity(particle_system) == capacityExpand(n_particles)
         @test EtherParallelParticles.Class.get_alive_n_particles(particle_system) == n_particles
-        @test EtherParallelParticles.Class.get_n_int_capacity(particle_system) == 1 + 1 + 1 * neighbour_count
+        @test EtherParallelParticles.Class.get_n_int_capacity(particle_system) == 1 + 1 + 1 + 1 * neighbour_count
         @test EtherParallelParticles.Class.get_n_float_capacity(particle_system) ==
               dim +
               1 +
@@ -78,11 +78,26 @@
         @test typeof(particle_system.parameters_.c_0) == FT
         @test typeof(particle_system.parameters_.gamma) == IT
         @test typeof(particle_system.parameters_.mu) == FT
-        @test particle_system.basic_index_.nCount == 2
-        @test particle_system.basic_index_.nIndex == 3
+        @test particle_system.basic_index_.Tag == 1
+        @test particle_system.basic_index_.IsMovable == 2
+        @test particle_system.basic_index_.nCount == 3
+        @test particle_system.basic_index_.nIndex == 4
         @test particle_system.basic_index_.nR == 124
         @test particle_system.basic_index_.PositionVec == 1
         @test particle_system.basic_index_.nRVec == 24
         @test particle_system.basic_index_.Tag == 1
+        Class.set_n_particles!(particle_system, 200)
+        @test EtherParallelParticles.Class.get_n_particles(particle_system) == 200
+        Class.set_int!(particle_system, zeros(Int64, 200, Class.get_n_int_capacity(particle_system)))
+        @test sum(particle_system.host_base_.int_properties_) == 0
+        Class.set_float!(particle_system, zeros(Float32, 200, Class.get_n_float_capacity(particle_system)))
+        @test sum(particle_system.host_base_.float_properties_) == 0.0
+        Class.set_int!(particle_system, :Tag, ones(Int64, 200))
+        Class.set_int!(particle_system, :nIndex, ones(Int64, 200, 50))
+        @test sum(particle_system.host_base_.int_properties_) == 200 + 200 * 50
+        Class.set_float!(particle_system, :Mass, ones(Float32, 200))
+        Class.set_float!(particle_system, :PositionVec, ones(Float32, 200, 2))
+        Class.set_float!(particle_system, :nRVec, ones(Float32, 200, 50 * 2))
+        @test sum(particle_system.host_base_.float_properties_) ≈ FT(200 + 200 * 2 + 200 * 50 * 2)
     end
 end

@@ -34,10 +34,10 @@ end
     jld_file::JLD2.JLDFile,
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    @inbounds mask = particle_system.host_base_.is_alive_ .== 1
-    @inbounds jld_file["raw/is_movable"] = particle_system.host_base_.is_movable_[mask]
-    @inbounds jld_file["raw/int_properties"] = particle_system.host_base_.int_properties_[mask, :]
-    @inbounds jld_file["raw/float_properties"] = particle_system.host_base_.float_properties_[mask, :]
+    @inbounds n_particles = particle_system.host_base_.n_particles_[1]
+    @inbounds mask = particle_system.host_base_.is_alive_[1:n_particles] .== 1
+    @inbounds jld_file["raw/int_properties"] = particle_system.host_base_.int_properties_[1:n_particles, :][mask, :]
+    @inbounds jld_file["raw/float_properties"] = particle_system.host_base_.float_properties_[1:n_particles, :][mask, :]
     return nothing
 end
 
@@ -57,14 +57,14 @@ end
 end
 
 @inline function save(
-    writer::RawWriter,
+    jld_file_name::String,
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
     time::AbstractDict;
     appendix::AbstractDict = Dict(),
     format = "yyyy_mm_dd_HH_MM_SS",
     compress = CodecZlib.ZlibCompressor(),
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    jld_file = JLD2.jldopen(get_file_name(writer, time["WriteStep"]), "w"; compress = compress)
+    jld_file = JLD2.jldopen(jld_file_name, "w"; compress = compress)
     saveParticleSystem(jld_file, particle_system)
     saveTime(jld_file, time; format = format)
     saveAppendix(jld_file, appendix)

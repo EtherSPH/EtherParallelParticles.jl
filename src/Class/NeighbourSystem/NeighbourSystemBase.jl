@@ -26,10 +26,10 @@ function Base.show(io::IO, neighbour_system::NeighbourSystemBase{IT}) where {IT 
 end
 
 @kernel function device_initializeNeighbourSystem!(
-    domain::AbstractDomain{IT, FT, Dimension2D},
+    domain::AbstractDomain{IT, FT, Dimension},
     neighbour_cell_index_count,
     neighbour_cell_index_list,
-) where {IT <: Integer, FT <: AbstractFloat}
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension{2}}
     I::IT = @index(Global)
     i::IT, j::IT = indexLinearToCartesian(domain, I)
     n_x::IT = get_n_x(domain)
@@ -48,10 +48,10 @@ end
 end
 
 @kernel function device_initializeNeighbourSystem!(
-    domain::AbstractDomain{IT, FT, Dimension3D},
+    domain::AbstractDomain{IT, FT, Dimension},
     neighbour_cell_index_count,
     neighbour_cell_index_list,
-) where {IT <: Integer, FT <: AbstractFloat}
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension{3}}
     I::IT = @index(Global)
     # TODO: add 3D support
 end

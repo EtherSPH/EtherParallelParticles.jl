@@ -11,6 +11,8 @@ include("ParticleSystemBase.jl")
 include("NamedIndex.jl")
 include("BasicIndex.jl")
 
+# * ===================== ParticleSystem Definition ===================== * #
+
 @inline function defaultCapacityExpand(n_particles::IT)::IT where {IT <: Integer}
     return n_particles
 end
@@ -181,6 +183,8 @@ function Base.show(
     println(io, ")")
 end
 
+# * ===================== ParticleSystem Data Transfer ===================== * #
+
 @inline function toDevice!(
     particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
@@ -195,6 +199,8 @@ end
     return nothing
 end
 
+# * ===================== ParticleSystem Data Manipulation ===================== * #
+
 @inline function set_n_particles!(
     particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
     n_particles::Integer,
@@ -205,17 +211,7 @@ end
     return nothing
 end
 
-@inline function set_is_movable!(
-    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
-    is_movable::Array{<:Integer, 1},
-)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    n_particles = get_n_particles(particle_system)
-    @assert n_particles <= get_n_capacity(particle_system)
-    @inbounds particle_system.host_base_.is_movable_[1:n_particles] .= IT.(is_movable)
-    return nothing
-end
-
-@inline function set_int_properties!(
+@inline function set_int!(
     particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
     int_properties::Array{<:Integer, 2},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
@@ -227,7 +223,7 @@ end
     return nothing
 end
 
-@inline function set_float_properties!(
+@inline function set_float!(
     particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
     float_properties::Array{<:AbstractFloat, 2},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
@@ -236,5 +232,35 @@ end
     @assert n_particles <= get_n_capacity(particle_system)
     @assert n_float_capacity == get_n_float_capacity(particle_system)
     @inbounds particle_system.host_base_.float_properties_[1:n_particles, :] .= FT.(float_properties)
+    return nothing
+end
+
+@inline function set_int!(
+    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
+    name::Symbol,
+    value::Array{<:Integer},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    @assert haskey(particle_system.named_index_.int_named_index_table_.capacity_named_tuple_, name)
+    index = getfield(particle_system.named_index_.int_named_index_table_.index_named_tuple_, name)
+    capacity = getfield(particle_system.named_index_.int_named_index_table_.capacity_named_tuple_, name)
+    @assert size(value, 2) == capacity
+    n_particles = size(value, 1)
+    @assert n_particles <= get_n_capacity(particle_system)
+    @inbounds particle_system.host_base_.int_properties_[1:n_particles, index:(index + capacity - 1)] .= IT.(value)
+    return nothing
+end
+
+@inline function set_float!(
+    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
+    name::Symbol,
+    value::Array{<:AbstractFloat},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    @assert haskey(particle_system.named_index_.float_named_index_table_.capacity_named_tuple_, name)
+    index = getfield(particle_system.named_index_.float_named_index_table_.index_named_tuple_, name)
+    capacity = getfield(particle_system.named_index_.float_named_index_table_.capacity_named_tuple_, name)
+    @assert size(value, 2) == capacity
+    n_particles = size(value, 1)
+    @assert n_particles <= get_n_capacity(particle_system)
+    @inbounds particle_system.host_base_.float_properties_[1:n_particles, index:(index + capacity - 1)] .= FT.(value)
     return nothing
 end

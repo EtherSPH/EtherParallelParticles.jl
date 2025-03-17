@@ -27,7 +27,7 @@ function Base.show(io::IO, writer::Writer)
     println(io, "Writer:")
     println(io, "    root path: $(get_path(writer))")
     println(io, "    config: $(get_path(writer.config_writer_))")
-    println(io, "    raw: $(get_path(writer.raw_writer_))")
+    println(io, "    raw: $(get_path(writer.raw_writer_))  eg. $(get_file_name(writer.raw_writer_, 1))")
     println(io, "    write tasks: $(length(writer.tasks_))")
 end
 
@@ -57,21 +57,26 @@ end
     return nothing
 end
 
-@inline function wait(writer::Writer)::Nothing
-    progress = ProgressMeter.Progress(
-        length(writer.tasks_);
-        dt = 0.5,
-        desc = "Wait for writing finished...",
-        barglyphs = BarGlyphs("[=> ]"),
-        barlen = 50,
-        color = :blue,
-    )
-    @info "Writing raw data with $(length(writer.tasks_)) tasks..."
-    for i in eachindex(writer.tasks_)
-        Base.fetch(writer.tasks_[i])
-        ProgressMeter.update!(progress, i)
+@inline function cleandir(writer::Writer)::Nothing
+    if !isdir(get_path(writer))
+        @info "directory $(get_path(writer)) not exist."
+        return nothing
+    else
+        @warn "remove all files & folders recursively in $(get_path(writer))"
+        rm(get_path(writer); force = true, recursive = true)
+        return nothing
     end
-    @info "Writing raw data finished."
+    return nothing
+end
+
+@inline function rmdir(writer::Writer)::Nothing
+    cleandir(writer)
+    rm(get_path(writer); force = true)
+    return nothing
+end
+
+@inline function wait(writer::Writer)::Nothing
+    @inbounds Base.fetch(writer.tasks_[end]) # wait for the last task finished
     return nothing
 end
 
@@ -83,8 +88,14 @@ end
     format = "yyyy_mm_dd_HH_MM_SS",
     compress = CodecZlib.ZlibCompressor(),
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    jld_file_name = get_file_name(writer.raw_writer_, time["WriteStep"])
+    if isempty(writer.tasks_)
+        nothing
+    else
+        wait(writer)
+    end
     task = Threads.@spawn begin
-        save(writer.raw_writer_, particle_system, time; appendix = appendix, format = format, compress = compress)
+        save(jld_file_name, particle_system, time; appendix = appendix, format = format, compress = compress)
     end
     push!(writer.tasks_, task)
     return nothing

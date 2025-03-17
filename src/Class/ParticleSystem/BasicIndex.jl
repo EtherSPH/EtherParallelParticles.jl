@@ -8,6 +8,7 @@
  =#
 
 const kBasicIndexMapDict = Dict{Symbol, Symbol}(
+    :IsMovable => :IsMovable,
     :PositionVec => :PositionVec,
     :Tag => :Tag,
     :nCount => :nCount,

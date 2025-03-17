@@ -12,11 +12,12 @@
 @kernel function device_insertParticlesIntoCells!(
     domain_2d::AbstractDomain{IT, FT, Dimension2D},
     ps_is_alive,
-    @Const(ps_is_movable),
     ps_cell_index,
+    @Const(ps_int_properties),
     @Const(ps_float_properties),
     ns_contained_particle_index_count,
     ns_contained_particle_index_list,
+    index_IsMovable::IT,
     index_PositionVec::IT,
 ) where {IT <: Integer, FT <: AbstractFloat}
     I::IT = @index(Global)
@@ -25,7 +26,7 @@
         # 1. movable: cell index must be calculated again
         # 2. immovable: if cell_index == 0, then calculate cell index
         #               if cell_index != 0, cell index does not need to be calculated
-        if ps_is_movable[I] == 0 && ps_cell_index[I] != 0
+        @inbounds if ps_int_properties[I, index_IsMovable] == 0 && ps_cell_index[I] != 0
             particle_in_cell_index = Atomix.@atomic ns_contained_particle_index_count[cell_index] += 1
             @inbounds ns_contained_particle_index_list[cell_index, particle_in_cell_index] = I
         else
@@ -65,11 +66,12 @@ end
     kernel_insertParticlesIntoCells!(
         domain,
         particle_system.device_base_.is_alive_,
-        particle_system.device_base_.is_movable_,
         particle_system.device_base_.cell_index_,
+        particle_system.device_base_.int_properties_,
         particle_system.device_base_.float_properties_,
         neighbour_system.base_.contained_particle_index_count_,
         neighbour_system.base_.contained_particle_index_list_,
+        particle_system.basic_index_.IsMovable,
         particle_system.basic_index_.PositionVec,
         ndrange = (n_particles,),
     )
@@ -95,11 +97,12 @@ end
     device_insertParticlesIntoCells!(Backend, n_threads)(
         domain,
         particle_system.device_base_.is_alive_,
-        particle_system.device_base_.is_movable_,
         particle_system.device_base_.cell_index_,
+        particle_system.device_base_.int_properties_,
         particle_system.device_base_.float_properties_,
         neighbour_system.base_.contained_particle_index_count_,
         neighbour_system.base_.contained_particle_index_list_,
+        particle_system.basic_index_.IsMovable,
         particle_system.basic_index_.PositionVec,
         ndrange = (n_particles,),
     )

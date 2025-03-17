@@ -15,7 +15,6 @@
         EtherParallelParticles.Class.ParticleSystemBase(parallel, n_capacity, int_n_capacity, float_n_capacity)
     @test size(particle_system_base.n_particles_) == (1,)
     @test size(particle_system_base.is_alive_) == (n_capacity,)
-    @test size(particle_system_base.is_movable_) == (n_capacity,)
     @test size(particle_system_base.cell_index_) == (n_capacity,)
     @test size(particle_system_base.int_properties_) == (n_capacity, int_n_capacity)
     @test size(particle_system_base.float_properties_) == (n_capacity, float_n_capacity)
