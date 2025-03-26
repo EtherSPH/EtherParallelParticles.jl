@@ -7,7 +7,7 @@
   @ description:
  =#
 
-@inline function continuity!(
+@inline function sContinuity!(
     ::Type{Dimension},
     I::Integer,
     IP,
@@ -15,31 +15,33 @@
     PM::NamedTuple;
     dt::Real = 0,
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @rho(I) += @drho(I) * @float(dt)
-    @inbounds @rho(I) = @float 0.0
+    @inbounds @rho(@i) += @drho(@i) * @float(dt)
+    @inbounds @drho(@i) = @float 0.0
     return nothing
 end
 
-@inline function classicContinuity!(
+@inline function iClassicContinuity!(
     ::Type{Dimension},
     I::Integer,
     NI::Integer,
     IP,
     FP,
     PM::NamedTuple;
+    dw::Real = 0,
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @drho(@i) += @mass(@j) * vdotx(@inter_args) * @dw(@ij) / @r(@ij)
+    @inbounds @drho(@i) += @mass(@j) * vdotx(@inter_args) * @float(dw) / @r(@ij)
     return nothing
 end
 
-@inline function balancedContinuity!(
+@inline function iBalancedContinuity!(
     ::Type{Dimension},
     I::Integer,
     NI::Integer,
     IP,
     FP,
     PM::NamedTuple;
+    dw::Real = 0,
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @drho(@i) += @rho(@j) * @vol(@j) * vdotx(@inter_args) * @dw(@ij) / @dw(@ij)
+    @inbounds @drho(@i) += @rho(@i) * @vol(@j) * vdotx(@inter_args) * @float(dw) / @r(@ij)
     return nothing
 end

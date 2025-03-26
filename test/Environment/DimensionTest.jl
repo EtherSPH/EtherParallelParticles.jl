@@ -10,4 +10,8 @@
 @testset "Dimension" begin
     @test EtherParallelParticles.Environment.dimension(EtherParallelParticles.Environment.Dimension2D) == 2
     @test EtherParallelParticles.Environment.dimension(EtherParallelParticles.Environment.Dimension3D) == 3
+    @test EtherParallelParticles.Environment.vector(Val(EtherParallelParticles.Environment.Dimension2D)) == 2
+    @test EtherParallelParticles.Environment.vector(Val(EtherParallelParticles.Environment.Dimension3D)) == 3
+    @test EtherParallelParticles.Environment.matrix(Val(EtherParallelParticles.Environment.Dimension2D)) == 4
+    @test EtherParallelParticles.Environment.matrix(Val(EtherParallelParticles.Environment.Dimension3D)) == 9
 end

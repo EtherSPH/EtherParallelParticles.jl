@@ -40,7 +40,7 @@
     )
     parameters = (c_0 = 340.0, gamma = 7, mu = 1e-3)
     capacityExpand(n)::typeof(n) = n
-    particle_system = EtherParallelParticles.Class.ParticleSystem(
+    d_particle_system = EtherParallelParticles.Class.ParticleSystem(
         parallel,
         domain,
         n_particles,
@@ -49,6 +49,7 @@
         parameters;
         capacityExpand = capacityExpand,
     )
+    h_particle_system = EtherParallelParticles.Class.mirror(d_particle_system)
     start_x = EtherParallelParticles.Class.get_first_x(domain)
     start_y = EtherParallelParticles.Class.get_first_y(domain)
     last_x = EtherParallelParticles.Class.get_last_x(domain)
@@ -68,43 +69,46 @@
     xy[8, :] .= [start_x + gap / 2, start_y + gap - err]
     xy[9, :] .= [start_x + gap * 3 / 2 - err, start_y + gap - err]
     for i in 1:9
-        particle_system.host_base_.float_properties_[i, particle_system.basic_index_.PositionVec] = xy[i, 1]
-        particle_system.host_base_.float_properties_[i, particle_system.basic_index_.PositionVec + 1] = xy[i, 2]
-        particle_system.host_base_.is_alive_[i] = 1
-        particle_system.host_base_.int_properties_[i, particle_system.basic_index_.Tag] = 1
+        h_particle_system.base_.float_properties_[i, h_particle_system.basic_index_.PositionVec] = xy[i, 1]
+        h_particle_system.base_.float_properties_[i, h_particle_system.basic_index_.PositionVec + 1] = xy[i, 2]
+        h_particle_system.base_.is_alive_[i] = 1
+        h_particle_system.base_.int_properties_[i, h_particle_system.basic_index_.Tag] = 1
     end
-    EtherParallelParticles.Class.toDevice!(particle_system)
-    EtherParallelParticles.Algorithm.search!(particle_system, domain, neighbour_system)
+    EtherParallelParticles.Class.asyncto!(d_particle_system, h_particle_system)
+    EtherParallelParticles.Algorithm.search!(d_particle_system, domain, neighbour_system)
     kernel = SPH.Kernel.CubicSpline{IT, FT, dim}()
     h_inv = 1 / (FT(1.5) * gap)
-    @inline function inter!(d, i, ni, ip, fp, pm)
-        SPH.Library.classicContinuity!(d, i, ni, ip, fp, pm)
-        SPH.Library.balancedContinuity!(d, i, ni, ip, fp, pm)
-        SPH.Library.value!(d, i, ni, ip, fp, pm, kernel)
-        SPH.Library.gradient!(d, i, ni, ip, fp, pm, kernel)
-        SPH.Library.value!(d, i, ni, ip, fp, pm, h_inv, kernel)
-        SPH.Library.gradient!(d, i, ni, ip, fp, pm, h_inv, kernel)
-        SPH.Library.value_gradient!(d, i, ni, ip, fp, pm, kernel)
-        p_c = SPH.Library.pressureCorrection(d, i, ni, ip, fp, pm, kernel)
-        SPH.Library.classicPressure!(d, i, ni, ip, fp, pm; coefficient = p_c)
-        SPH.Library.balancedPressure!(d, i, ni, ip, fp, pm; coefficient = p_c)
-        SPH.Library.densityWeightedPressure!(d, i, ni, ip, fp, pm; coefficient = p_c)
-        SPH.Library.extrapolatePressure!(d, i, ni, ip, fp, pm; p0 = 0.0, gx = 0.0, gy = -9.8)
-        SPH.Library.classicViscosity!(d, i, ni, ip, fp, pm; mu = 1e-3)
-        SPH.Library.artificialViscosity!(d, i, ni, ip, fp, pm; alpha = 0.1, beta = 0.1, c = pm.c_0)
-        SPH.Library.kernelFilter!(d, i, ni, ip, fp, pm)
+    @inline function inter!(Dimension, I, NI, IP, FP, PM)
+        w = SPH.Library.iValue(Dimension, I, NI, IP, FP, PM, kernel)
+        dw = SPH.Library.iGradient(Dimension, I, NI, IP, FP, PM, kernel)
+        SPH.Library.iClassicContinuity!(Dimension, I, NI, IP, FP, PM; dw = dw)
+        SPH.Library.iBalancedContinuity!(Dimension, I, NI, IP, FP, PM; dw = dw)
+        SPH.Library.iValue!(Dimension, I, NI, IP, FP, PM, kernel)
+        SPH.Library.iGradient!(Dimension, I, NI, IP, FP, PM, kernel)
+        SPH.Library.iValue!(Dimension, I, NI, IP, FP, PM, h_inv, kernel)
+        SPH.Library.iGradient!(Dimension, I, NI, IP, FP, PM, h_inv, kernel)
+        SPH.Library.iValueGradient!(Dimension, I, NI, IP, FP, PM, kernel)
+        p_c = SPH.Library.iPressureCorrection(Dimension, I, NI, IP, FP, PM, kernel; hinv = h_inv, w = w)
+        SPH.Library.iClassicPressure!(Dimension, I, NI, IP, FP, PM; dw = dw, coefficient = p_c)
+        SPH.Library.iBalancedPressure!(Dimension, I, NI, IP, FP, PM; dw = dw, coefficient = p_c)
+        SPH.Library.iDensityWeightedPressure!(Dimension, I, NI, IP, FP, PM; dw = dw, coefficient = p_c)
+        SPH.Library.iExtrapolatePressure!(Dimension, I, NI, IP, FP, PM; w = w, p0 = 0.0, gx = 0.0, gy = -9.8)
+        SPH.Library.iClassicViscosity!(Dimension, I, NI, IP, FP, PM; dw = dw, mu = 1e-3)
+        SPH.Library.sArtificialViscosity!(Dimension, I, NI, IP, FP, PM; dw = dw, alpha = 0.1, beta = 0.1, c = PM.c_0)
+        SPH.Library.iKernelFilter!(Dimension, I, NI, IP, FP, PM; w = w)
     end
-    @inline function self!(d, i, ip, fp, pm)
-        SPH.Library.volume!(d, i, ip, fp, pm)
-        SPH.Library.gravity!(d, i, ip, fp, pm; gx = 0, gy = -9.8)
-        SPH.Library.continuity!(d, i, ip, fp, pm; dt = 0.1)
-        SPH.Library.acceleration!(d, i, ip, fp, pm)
-        SPH.Library.accelerate!(d, i, ip, fp, pm; dt = 0.1)
-        SPH.Library.move!(d, i, ip, fp, pm; dt = 0.1)
-        SPH.Library.accelerate_move!(d, i, ip, fp, pm; dt = 0.1)
-        SPH.Library.extrapolatePressure!(d, i, ip, fp, pm; p0 = 0.0)
-        SPH.Library.kernelFilter!(d, i, ip, fp, pm, kernel)
+    @inline function self!(Dimension, I, IP, FP, PM)
+        w0 = SPH.Kernel.value0(@h(@i), kernel)
+        SPH.Library.sVolume!(Dimension, I, IP, FP, PM)
+        SPH.Library.sGravity!(Dimension, I, IP, FP, PM; gx = 0, gy = -9.8)
+        SPH.Library.sContinuity!(Dimension, I, IP, FP, PM; dt = 0.1)
+        SPH.Library.sAcceleration!(Dimension, I, IP, FP, PM)
+        SPH.Library.sAccelerate!(Dimension, I, IP, FP, PM; dt = 0.1)
+        SPH.Library.sMove!(Dimension, I, IP, FP, PM; dt = 0.1)
+        SPH.Library.sAccelerateMove!(Dimension, I, IP, FP, PM; dt = 0.1)
+        SPH.Library.sExtrapolatePressure!(Dimension, I, IP, FP, PM; p0 = 0.0)
+        SPH.Library.sKernelFilter!(Dimension, I, IP, FP, PM; w0 = w0)
     end
-    Algorithm.selfaction!(particle_system, self!)
-    Algorithm.interaction!(particle_system, inter!)
+    Algorithm.selfaction!(d_particle_system, self!)
+    Algorithm.interaction!(d_particle_system, inter!)
 end

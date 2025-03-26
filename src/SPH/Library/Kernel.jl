@@ -7,7 +7,32 @@
   @ description:
  =#
 
-@inline function value!(
+@inline function iValue(
+    ::Type{Dimension},
+    I::Integer,
+    NI::Integer,
+    IP,
+    FP,
+    PM::NamedTuple,
+    kernel::AbstractKernel;
+)::@float() where {N, Dimension <: AbstractDimension{N}}
+    return Kernel.value(@r(@ij), Math.Mean.arithmetic(@h(@i), @h(@j)), kernel)
+end
+
+@inline function iValue(
+    ::Type{Dimension},
+    I::Integer,
+    NI::Integer,
+    IP,
+    FP,
+    PM::NamedTuple,
+    hinv::Real,
+    kernel::AbstractKernel;
+)::@float() where {N, Dimension <: AbstractDimension{N}}
+    return Kernel._value(@r(@ij), hinv, kernel)
+end
+
+@inline function iValue!(
     ::Type{Dimension},
     I::Integer,
     NI::Integer,
@@ -16,25 +41,50 @@
     PM::NamedTuple,
     kernel::AbstractKernel;
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @w(@ij) = Kernel.value(@r(@ij), Math.Mean.arithmetic(@h(@i), @h(@j)), kernel)
+    @inbounds @w(@ij) = iValue(@inter_args, kernel)
     return nothing
 end
 
-@inline function value!(
+@inline function iValue!(
     ::Type{Dimension},
     I::Integer,
     NI::Integer,
     IP,
     FP,
     PM::NamedTuple,
-    h_inv::Real,
+    hinv::Real,
     kernel::AbstractKernel;
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @w(@ij) = Kernel._value(@r(@ij), @float(h_inv), kernel)
+    @inbounds @w(@ij) = iValue(@inter_args, hinv, kernel)
     return nothing
 end
 
-@inline function gradient!(
+@inline function iGradient(
+    ::Type{Dimension},
+    I::Integer,
+    NI::Integer,
+    IP,
+    FP,
+    PM::NamedTuple,
+    kernel::AbstractKernel;
+)::@float() where {N, Dimension <: AbstractDimension{N}}
+    return Kernel.gradient(@r(@ij), Math.Mean.arithmetic(@h(@i), @h(@j)), kernel)
+end
+
+@inline function iGradient(
+    ::Type{Dimension},
+    I::Integer,
+    NI::Integer,
+    IP,
+    FP,
+    PM::NamedTuple,
+    hinv::Real,
+    kernel::AbstractKernel;
+)::@float() where {N, Dimension <: AbstractDimension{N}}
+    return Kernel._gradient(@r(@ij), hinv, kernel)
+end
+
+@inline function iGradient!(
     ::Type{Dimension},
     I::Integer,
     NI::Integer,
@@ -43,25 +93,25 @@ end
     PM::NamedTuple,
     kernel::AbstractKernel;
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @dw(@ij) = Kernel.gradient(@r(@ij), Math.Mean.arithmetic(@h(@i), @h(@j)), kernel)
+    @inbounds @dw(@ij) = iGradient(@inter_args, kernel)
     return nothing
 end
 
-@inline function gradient!(
+@inline function iGradient!(
     ::Type{Dimension},
     I::Integer,
     NI::Integer,
     IP,
     FP,
     PM::NamedTuple,
-    h_inv::Real,
+    hinv::Real,
     kernel::AbstractKernel;
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds @dw(@ij) = Kernel._gradient(@r(@ij), @float(h_inv), kernel)
+    @inbounds @dw(@ij) = iGradient(@inter_args, hinv, kernel)
     return nothing
 end
 
-@inline function value_gradient!(
+@inline function iValueGradient!(
     ::Type{Dimension},
     I::Integer,
     NI::Integer,
@@ -70,9 +120,9 @@ end
     PM::NamedTuple,
     kernel::AbstractKernel;
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    h_inv::@float() = Math.Mean.invharmonic(@h(@i), @h(@j))
-    @inbounds @hinv(@ij) = h_inv
-    @inbounds @w(@ij) = Kernel._value(@r(@ij), h_inv, kernel)
-    @inbounds @dw(@ij) = Kernel._gradient(@r(@ij), h_inv, kernel)
+    hinv::@float() = Math.Mean.invharmonic(@h(@i), @h(@j))
+    @inbounds @hinv(@ij) = hinv
+    @inbounds @w(@ij) = Kernel._value(@r(@ij), hinv, kernel)
+    @inbounds @dw(@ij) = Kernel._gradient(@r(@ij), hinv, kernel)
     return nothing
 end

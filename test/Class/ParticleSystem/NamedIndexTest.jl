@@ -46,4 +46,8 @@
           neighbour_count +
           neighbour_count +
           neighbour_count
+    @test length(EtherParallelParticles.Class.get_int_symbol_head(named_index)) ==
+          EtherParallelParticles.Class.get_n_int_capacity(named_index)
+    @test length(EtherParallelParticles.Class.get_float_symbol_head(named_index)) ==
+          EtherParallelParticles.Class.get_n_float_capacity(named_index)
 end

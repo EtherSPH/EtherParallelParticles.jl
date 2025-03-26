@@ -9,10 +9,11 @@
 
 using Test
 using EtherParallelParticles
+using EtherParallelParticles.SPH.Macro
 using KernelAbstractions
 
-# support for `cpu`, `cuda`, `oneapi`, `rocm`, `metal`
-const DEVICE = "oneapi"
+# support for `cpu`, `cuda`, `rocm`, `oneapi`, `metal`
+const DEVICE = "cpu"
 include("Head/$(DEVICE)_head.jl")
 
 @testset "EtherParallelParticles" begin

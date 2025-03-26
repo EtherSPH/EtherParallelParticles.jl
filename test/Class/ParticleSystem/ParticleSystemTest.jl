@@ -71,10 +71,15 @@
               neighbour_count +
               neighbour_count +
               neighbour_count
-        @test typeof(particle_system.host_base_.int_properties_) == Array{IT, 2}
-        @test typeof(particle_system.host_base_.float_properties_) == Array{FT, 2}
-        @test typeof(particle_system.device_base_.int_properties_) <: CT
-        @test typeof(particle_system.device_base_.float_properties_) <: CT
+        mirror_ps = Class.mirror(particle_system)
+        Class.syncto!(mirror_ps, particle_system)
+        Class.asyncto!(mirror_ps, particle_system)
+        Class.syncto!(particle_system, mirror_ps)
+        Class.asyncto!(particle_system, mirror_ps)
+        @test typeof(mirror_ps.base_.int_properties_) == Array{IT, 2}
+        @test typeof(mirror_ps.base_.float_properties_) == Array{FT, 2}
+        @test typeof(particle_system.base_.int_properties_) <: CT
+        @test typeof(particle_system.base_.float_properties_) <: CT
         @test typeof(particle_system.parameters_.c_0) == FT
         @test typeof(particle_system.parameters_.gamma) == IT
         @test typeof(particle_system.parameters_.mu) == FT
@@ -88,16 +93,5 @@
         @test particle_system.basic_index_.Tag == 1
         Class.set_n_particles!(particle_system, 200)
         @test EtherParallelParticles.Class.get_n_particles(particle_system) == 200
-        Class.set_int!(particle_system, zeros(Int64, 200, Class.get_n_int_capacity(particle_system)))
-        @test sum(particle_system.host_base_.int_properties_) == 0
-        Class.set_float!(particle_system, zeros(Float32, 200, Class.get_n_float_capacity(particle_system)))
-        @test sum(particle_system.host_base_.float_properties_) == 0.0
-        Class.set_int!(particle_system, :Tag, ones(Int64, 200))
-        Class.set_int!(particle_system, :nIndex, ones(Int64, 200, 50))
-        @test sum(particle_system.host_base_.int_properties_) == 200 + 200 * 50
-        Class.set_float!(particle_system, :Mass, ones(Float32, 200))
-        Class.set_float!(particle_system, :PositionVec, ones(Float32, 200, 2))
-        Class.set_float!(particle_system, :nRVec, ones(Float32, 200, 50 * 2))
-        @test sum(particle_system.host_base_.float_properties_) ≈ FT(200 + 200 * 2 + 200 * 50 * 2)
     end
 end

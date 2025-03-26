@@ -7,32 +7,34 @@
   @ description:
  =#
 
-@kwdef struct ConfigWriter <: AbstractWriter
+abstract type AbstractConfigWriter <: AbstractWriter end
+
+@kwdef struct ConfigWriter <: AbstractConfigWriter
     path_::String = "config"
 end
 
-@inline function get_int_file_name(writer::ConfigWriter)::String
+@inline function get_int_file_name(writer::AbstractConfigWriter)::String
     return joinpath(writer.path_, "int.csv")
 end
 
-@inline function get_int_head_file_name(writer::ConfigWriter)::String
+@inline function get_int_head_file_name(writer::AbstractConfigWriter)::String
     return joinpath(writer.path_, "int_head.csv")
 end
 
-@inline function get_float_file_name(writer::ConfigWriter)::String
+@inline function get_float_file_name(writer::AbstractConfigWriter)::String
     return joinpath(writer.path_, "float.csv")
 end
 
-@inline function get_float_head_file_name(writer::ConfigWriter)::String
+@inline function get_float_head_file_name(writer::AbstractConfigWriter)::String
     return joinpath(writer.path_, "float_head.csv")
 end
 
-@inline function get_parameter_file_name(writer::ConfigWriter)::String
+@inline function get_parameter_file_name(writer::AbstractConfigWriter)::String
     return joinpath(writer.path_, "parameter.csv")
 end
 
-@inline function save(
-    writer::ConfigWriter,
+@inline function saveConfig(
+    writer::AbstractConfigWriter,
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
     int_file_name = get_int_file_name(writer)

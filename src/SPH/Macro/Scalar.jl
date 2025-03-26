@@ -29,7 +29,7 @@ const kNeighbourFloatScalarDict = Dict(
     "nR" => ["r", "n_r"],
     "nW" => ["w", "n_w"],
     "nDW" => ["dw", "∇w", "n_dw", "n_∇w"],
-    "nHInv" => ["hinv", "n_h_inv", "h_inv"],
+    "nHInv" => ["hinv", "n_hinv", "h_inv"],
 )
 
 # """

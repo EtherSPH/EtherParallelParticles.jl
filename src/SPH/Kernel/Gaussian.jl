@@ -16,12 +16,12 @@ struct Gaussian{IT <: Integer, FT <: AbstractFloat, N} <: AbstractKernel{IT, FT,
 
 @inline @fastmath function _value(
     r::Real,
-    h_inv::Real,
+    hinv::Real,
     kernel::Gaussian{IT, FT, N},
 )::FT where {IT <: Integer, FT <: AbstractFloat, N}
-    q::FT = r * h_inv
+    q::FT = r * hinv
     if q < FT(3.0)
-        return sigma(kernel) * Math.power(h_inv, Val(N)) * exp(-q * q)
+        return sigma(kernel) * Math.power(hinv, Val(N)) * exp(-q * q)
     else
         return FT(0.0)
     end
@@ -37,12 +37,12 @@ end
 
 @inline @fastmath function _gradient(
     r::Real,
-    h_inv::Real,
+    hinv::Real,
     kernel::Gaussian{IT, FT, N},
 )::FT where {IT <: Integer, FT <: AbstractFloat, N}
-    q::FT = r * h_inv
+    q::FT = r * hinv
     if q < FT(3.0)
-        return -2 * sigma(kernel) * Math.power(h_inv, Val(N + 1)) * q * exp(-q * q)
+        return -2 * sigma(kernel) * Math.power(hinv, Val(N + 1)) * q * exp(-q * q)
     else
         return FT(0.0)
     end

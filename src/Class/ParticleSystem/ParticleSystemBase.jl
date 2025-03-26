@@ -7,9 +7,9 @@
   @ description:
  =#
 
-abstract type AbstractParticleSystemBase{IT <: Integer, FT <: AbstractFloat} end
+abstract type AbstractParticleSystemBase{IT <: Integer, FT <: AbstractFloat, Backend} end
 
-struct ParticleSystemBase{IT <: Integer, FT <: AbstractFloat} <: AbstractParticleSystemBase{IT, FT}
+struct ParticleSystemBase{IT <: Integer, FT <: AbstractFloat, Backend} <: AbstractParticleSystemBase{IT, FT, Backend}
     n_particles_::AbstractArray{IT, 1} # (1, ) on device, n_capacity_ >= n_particles_[1]
     is_alive_::AbstractArray{IT, 1} # (n_capacity, ) on device, 0: dead, 1: alive
     cell_index_::AbstractArray{IT, 1} # (n_capacity, ) on device, 0 waits for initialization
@@ -17,17 +17,44 @@ struct ParticleSystemBase{IT <: Integer, FT <: AbstractFloat} <: AbstractParticl
     float_properties_::AbstractArray{FT, 2} # (n_capacity, n_float_capacity) on device
 end
 
-@inline function transfer!(
-    backend::KernelAbstractions.Backend,
-    destination_base::ParticleSystemBase{IT, FT},
-    source_base::ParticleSystemBase{IT, FT},
-)::Nothing where {IT <: Integer, FT <: AbstractFloat}
-    KernelAbstractions.copyto!(backend, destination_base.n_particles_, source_base.n_particles_)
-    KernelAbstractions.copyto!(backend, destination_base.is_alive_, source_base.is_alive_)
-    KernelAbstractions.copyto!(backend, destination_base.cell_index_, source_base.cell_index_)
-    KernelAbstractions.copyto!(backend, destination_base.int_properties_, source_base.int_properties_)
-    KernelAbstractions.copyto!(backend, destination_base.float_properties_, source_base.float_properties_)
-    KernelAbstractions.synchronize(backend)
+@inline function syncto!(
+    destination_base::ParticleSystemBase{IT, FT, Backend1},
+    source_base::ParticleSystemBase{IT, FT, Backend2},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Backend1, Backend2}
+    # serial copy
+    Base.copyto!(destination_base.n_particles_, source_base.n_particles_)
+    Base.copyto!(destination_base.is_alive_, source_base.is_alive_)
+    Base.copyto!(destination_base.cell_index_, source_base.cell_index_)
+    Base.copyto!(destination_base.int_properties_, source_base.int_properties_)
+    Base.copyto!(destination_base.float_properties_, source_base.float_properties_)
+    return nothing
+end
+
+@inline function asyncto!(
+    destination_base::ParticleSystemBase{IT, FT, Backend1},
+    source_base::ParticleSystemBase{IT, FT, Backend2},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Backend1, Backend2}
+    # async copy
+    n_particles_task = Threads.@spawn begin
+        Base.copyto!(destination_base.n_particles_, source_base.n_particles_)
+    end
+    is_alive_task = Threads.@spawn begin
+        Base.copyto!(destination_base.is_alive_, source_base.is_alive_)
+    end
+    cell_index_task = Threads.@spawn begin
+        Base.copyto!(destination_base.cell_index_, source_base.cell_index_)
+    end
+    int_properties_task = Threads.@spawn begin
+        Base.copyto!(destination_base.int_properties_, source_base.int_properties_)
+    end
+    float_properties_task = Threads.@spawn begin
+        Base.copyto!(destination_base.float_properties_, source_base.float_properties_)
+    end
+    Base.fetch(n_particles_task)
+    Base.fetch(is_alive_task)
+    Base.fetch(cell_index_task)
+    Base.fetch(int_properties_task)
+    Base.fetch(float_properties_task)
     return nothing
 end
 
@@ -36,7 +63,7 @@ end
     n_capacity::Integer,
     n_int_capacity::Integer,
     n_float_capacity::Integer,
-)::ParticleSystemBase{IT, FT} where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend}
+)::ParticleSystemBase{IT, FT, Backend} where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend}
     n_int_capacity::IT = n_int_capacity
     n_float_capacity::IT = n_float_capacity
     n_capacity::IT = parallel(n_capacity)
@@ -45,11 +72,14 @@ end
     cell_index = parallel(zeros(IT, n_capacity)) # default: 0
     int_properties = parallel(zeros(IT, n_capacity, n_int_capacity))
     float_properties = parallel(zeros(FT, n_capacity, n_float_capacity))
-    return ParticleSystemBase{IT, FT}(n_particles, is_alive, cell_index, int_properties, float_properties)
+    return ParticleSystemBase{IT, FT, Backend}(n_particles, is_alive, cell_index, int_properties, float_properties)
 end
 
-function Base.show(io::IO, particle_system_base::ParticleSystemBase{IT, FT}) where {IT <: Integer, FT <: AbstractFloat}
-    println(io, "ParticleSystemBase{$IT, $FT}(")
+function Base.show(
+    io::IO,
+    particle_system_base::ParticleSystemBase{IT, FT, Backend},
+) where {IT <: Integer, FT <: AbstractFloat, Backend}
+    println(io, "ParticleSystemBase{$IT, $FT, $Backend}(")
     println(io, "    n_particles: $(Array(particle_system_base.n_particles_)[1])")
     println(io, "    n_capacity: $(length(particle_system_base.is_alive_))")
     println(io, "    n_alive particles: $(sum(particle_system_base.is_alive_))")

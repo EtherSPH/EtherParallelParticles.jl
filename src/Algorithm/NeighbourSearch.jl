@@ -26,14 +26,15 @@
         # 1. movable: cell index must be calculated again
         # 2. immovable: if cell_index == 0, then calculate cell index
         #               if cell_index != 0, cell index does not need to be calculated
-        @inbounds if ps_int_properties[I, index_IsMovable] == 0 && ps_cell_index[I] != 0
-            particle_in_cell_index = Atomix.@atomic ns_contained_particle_index_count[cell_index] += 1
+        @inbounds cell_index::IT = ps_cell_index[I]
+        @inbounds if ps_int_properties[I, index_IsMovable] == 0 && cell_index != 0
+            @inbounds particle_in_cell_index = Atomix.@atomic ns_contained_particle_index_count[cell_index] += 1
             @inbounds ns_contained_particle_index_list[cell_index, particle_in_cell_index] = I
         else
             @inbounds x::FT = ps_float_properties[I, index_PositionVec]
             @inbounds y::FT = ps_float_properties[I, index_PositionVec + 1]
             if Class.inside(domain_2d, x, y)
-                cell_index::IT = Class.indexLinearFromPosition(domain_2d, x, y)
+                cell_index = Class.indexLinearFromPosition(domain_2d, x, y)
                 @inbounds ps_cell_index[I] = cell_index
                 particle_in_cell_index = Atomix.@atomic ns_contained_particle_index_count[cell_index] += 1
                 @inbounds ns_contained_particle_index_list[cell_index, particle_in_cell_index] = I
@@ -65,10 +66,10 @@ end
     kernel_insertParticlesIntoCells! = device_insertParticlesIntoCells!(Backend, n_threads, (Int64(n_particles),))
     kernel_insertParticlesIntoCells!(
         domain,
-        particle_system.device_base_.is_alive_,
-        particle_system.device_base_.cell_index_,
-        particle_system.device_base_.int_properties_,
-        particle_system.device_base_.float_properties_,
+        particle_system.base_.is_alive_,
+        particle_system.base_.cell_index_,
+        particle_system.base_.int_properties_,
+        particle_system.base_.float_properties_,
         neighbour_system.base_.contained_particle_index_count_,
         neighbour_system.base_.contained_particle_index_list_,
         particle_system.basic_index_.IsMovable,
@@ -96,10 +97,10 @@ end
 }
     device_insertParticlesIntoCells!(Backend, n_threads)(
         domain,
-        particle_system.device_base_.is_alive_,
-        particle_system.device_base_.cell_index_,
-        particle_system.device_base_.int_properties_,
-        particle_system.device_base_.float_properties_,
+        particle_system.base_.is_alive_,
+        particle_system.base_.cell_index_,
+        particle_system.base_.int_properties_,
+        particle_system.base_.float_properties_,
         neighbour_system.base_.contained_particle_index_count_,
         neighbour_system.base_.contained_particle_index_list_,
         particle_system.basic_index_.IsMovable,
@@ -217,10 +218,10 @@ end
     kernel_findNeighbourParticlesFromCells!(
         domain,
         PeriodicBoundaryPolicy,
-        particle_system.device_base_.is_alive_,
-        particle_system.device_base_.cell_index_,
-        particle_system.device_base_.int_properties_,
-        particle_system.device_base_.float_properties_,
+        particle_system.base_.is_alive_,
+        particle_system.base_.cell_index_,
+        particle_system.base_.int_properties_,
+        particle_system.base_.float_properties_,
         neighbour_system.base_.contained_particle_index_count_,
         neighbour_system.base_.contained_particle_index_list_,
         neighbour_system.base_.neighbour_cell_index_count_,
@@ -256,10 +257,10 @@ end
     device_findNeighbourParticlesFromCells!(Backend, n_threads)(
         domain,
         PeriodicBoundaryPolicy,
-        particle_system.device_base_.is_alive_,
-        particle_system.device_base_.cell_index_,
-        particle_system.device_base_.int_properties_,
-        particle_system.device_base_.float_properties_,
+        particle_system.base_.is_alive_,
+        particle_system.base_.cell_index_,
+        particle_system.base_.int_properties_,
+        particle_system.base_.float_properties_,
         neighbour_system.base_.contained_particle_index_count_,
         neighbour_system.base_.contained_particle_index_list_,
         neighbour_system.base_.neighbour_cell_index_count_,

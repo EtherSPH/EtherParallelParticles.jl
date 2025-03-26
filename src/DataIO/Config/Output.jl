@@ -9,7 +9,7 @@
 
 @inline template() = JSON.parsefile(joinpath(@__DIR__, "template.json"); dicttype = OrderedDict)
 
-@inline function replace!(
+@inline function Base.replace!(
     config_dict::AbstractDict,
     ::AbstractParallel{IT, FT, CT, Backend},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend}
@@ -23,7 +23,7 @@
     return nothing
 end
 
-@inline function replace!(
+@inline function Base.replace!(
     config_dict::AbstractDict,
     domain::AbstractDomain{IT, FT, Dimension},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, N, Dimension <: AbstractDimension{N}}
@@ -40,15 +40,7 @@ end
     return nothing
 end
 
-@inline function replace!(config_dict::AbstractDict, writer::Writer)::Nothing
-    config_dict["writer"]["path"] = get_path(writer)
-    config_dict["writer"]["file_name"] = writer.raw_writer_.file_name_
-    config_dict["writer"]["connect"] = writer.raw_writer_.connect_
-    config_dict["writer"]["digits"] = writer.raw_writer_.digits_
-    return nothing
-end
-
-@inline function replace!(
+@inline function Base.replace!(
     config_dict::AbstractDict,
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
 )::Nothing where {
@@ -64,11 +56,11 @@ end
     @assert n_particles <= n_capacity
     config_dict["particle_system"]["n_particles"] = n_particles
     config_dict["particle_system"]["capacity_expand"] = "n -> n + $(n_capacity - n_particles)"
-    config_dict["particle_system"]["int_properties"] = Utility.convertNamedTupleToDict(
+    config_dict["particle_system"]["int_named_tuple"] = Utility.convertNamedTupleToDict(
         particle_system.named_index_.int_named_index_table_.capacity_named_tuple_;
         dicttype = OrderedDict,
     )
-    config_dict["particle_system"]["float_properties"] = Utility.convertNamedTupleToDict(
+    config_dict["particle_system"]["float_named_tuple"] = Utility.convertNamedTupleToDict(
         particle_system.named_index_.float_named_index_table_.capacity_named_tuple_;
         dicttype = OrderedDict,
     )
@@ -77,7 +69,7 @@ end
     return nothing
 end
 
-@inline function replace!(
+@inline function Base.replace!(
     config_dict::AbstractDict,
     neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy},
 )::Nothing where {
@@ -106,18 +98,31 @@ end
     return nothing
 end
 
+@inline function Base.replace!(config_dict::AbstractDict, writer::Writer)::Nothing
+    config_dict["writer"]["path"] = get_path(writer)
+    config_dict["writer"]["file_name"] = writer.raw_writer_.file_name_
+    config_dict["writer"]["connect"] = writer.raw_writer_.connect_
+    config_dict["writer"]["digits"] = writer.raw_writer_.digits_
+    config_dict["writer"]["suffix"] = writer.raw_writer_.suffix_
+    return nothing
+end
+
 @inline function config(
-    parallel::AbstractParallel{IT, FT, CT, Backend},
+    parallel::AbstractParallel{IT, FT, CT1, Backend1},
     domain::AbstractDomain{IT, FT, Dimension},
-    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
-    neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy},
+    particle_system::AbstractParticleSystem{IT, FT, CT2, Backend2, Dimension},
+    neighbour_system::AbstractNeighbourSystem{IT, FT, CT3, Backend3, PeriodicBoundaryPolicy},
     writer::Writer;
-    config_dict = template(),
-) where {
+    config_dict::AbstractDict = template(),
+)::AbstractDict where {
     IT <: Integer,
     FT <: AbstractFloat,
-    CT <: AbstractArray,
-    Backend,
+    CT1 <: AbstractArray,
+    Backend1,
+    CT2 <: AbstractArray,
+    Backend2,
+    CT3 <: AbstractArray,
+    Backend3,
     N,
     Dimension <: AbstractDimension{N},
     PeriodicBoundaryPolicy <: AbstractPeriodicBoundaryPolicy,
@@ -131,26 +136,54 @@ end
     return config_dict
 end
 
+@inline function writeConfig(
+    writer::Writer,
+    config_dict::AbstractDict,
+    format::Symbol = :json, # :json or :yaml
+)::Nothing
+    if format == :json
+        open(joinpath(get_path(writer.config_writer_), "config.json"), "w") do file
+            JSON.print(file, config_dict, 4)
+        end
+        return nothing
+    elseif format == :yaml
+        YAML.write_file(joinpath(get_path(writer.config_writer_), "config.yaml"), config_dict)
+        return nothing
+    else
+        @warn "Unsupported format: $format, defaulting to :json"
+        writeConfig(writer, config_dict, :json)
+        return nothing
+    end
+    return nothing
+end
+
 @inline function save(
-    parallel::AbstractParallel{IT, FT, CT, Backend},
+    parallel::AbstractParallel{IT, FT, CT1, Backend1},
     domain::AbstractDomain{IT, FT, Dimension},
-    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
-    neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy},
+    particle_system::AbstractParticleSystem{IT, FT, CT2, Backend2, Dimension},
+    neighbour_system::AbstractNeighbourSystem{IT, FT, CT3, Backend3, PeriodicBoundaryPolicy},
     writer::Writer;
     config_dict = template(),
+    format::Symbol = :json, # :json, :yaml or :all
 )::Nothing where {
     IT <: Integer,
     FT <: AbstractFloat,
-    CT <: AbstractArray,
-    Backend,
+    CT1 <: AbstractArray,
+    Backend1,
+    CT2 <: AbstractArray,
+    Backend2,
+    CT3 <: AbstractArray,
+    Backend3,
     N,
     Dimension <: AbstractDimension{N},
     PeriodicBoundaryPolicy <: AbstractPeriodicBoundaryPolicy,
 }
-    save(writer, particle_system)
+    saveConfig(writer.config_writer_, particle_system)
     config_dict = config(parallel, domain, particle_system, neighbour_system, writer; config_dict = config_dict)
-    open(joinpath(get_path(writer.config_writer_), "config.json"), "w") do file
-        JSON.print(file, config_dict, 4)
+    if format == :all
+        for form in [:json, :yaml]
+            writeConfig(writer, config_dict, form)
+        end
     end
     return nothing
 end

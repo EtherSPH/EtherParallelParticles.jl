@@ -7,7 +7,7 @@
   @ description:
  =#
 
-@inline function parallel(config_dict::AbstractDict)::Expr
+@inline function Parallel(config_dict::AbstractDict)::Expr
     IT = config_dict["parallel"]["int"]
     FT = config_dict["parallel"]["float"]
     CT = kNameToContainer[config_dict["parallel"]["backend"]]
@@ -18,7 +18,7 @@
     )
 end
 
-@inline function domain(
+@inline function Domain(
     config_dict::AbstractDict,
     ::AbstractParallel{IT, FT, CT, Backend},
 ) where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend}
@@ -30,8 +30,9 @@ end
             config_dict["domain"]["last_x"],
             config_dict["domain"]["last_y"],
         )
+    else
+        # TODO: add 3D support
     end
-    # TODO: add 3D support
 end
 
 @inline function ParticleSystem(
@@ -108,5 +109,27 @@ end
         file_name = config_dict["writer"]["file_name"],
         connect = config_dict["writer"]["connect"],
         digits = config_dict["writer"]["digits"],
+        suffix = config_dict["writer"]["suffix"],
     )
+end
+
+@inline function load!(
+    writer::Writer,
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    appendix::AbstractDict;
+    start::Int = 0,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    raw_file_path = get_path(writer.raw_writer_)
+    files_list = readdir(raw_file_path)
+    sort!(files_list)
+    file_name = joinpath(raw_file_path, files_list[start + 1])
+    JLD2.jldopen(file_name, "r") do jld_file
+        for key in keys(appendix)
+            appendix[key] = jld_file["appendix/$key"]
+        end
+        Class.set_int!(particle_system, jld_file["raw/int_properties"])
+        Class.set_float!(particle_system, jld_file["raw/float_properties"])
+    end
+    Class.set_is_alive!(particle_system)
+    return nothing
 end

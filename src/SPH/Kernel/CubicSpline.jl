@@ -16,15 +16,15 @@ struct CubicSpline{IT <: Integer, FT <: AbstractFloat, N} <: AbstractKernel{IT, 
 
 @inline @fastmath function _value(
     r::Real,
-    h_inv::Real,
+    hinv::Real,
     kernel::CubicSpline{IT, FT, N},
 )::FT where {IT <: Integer, FT <: AbstractFloat, N}
-    q::FT = r * h_inv
+    q::FT = r * hinv
     if q < FT(1.0)
-        return sigma(kernel) * Math.power(h_inv, Val(N)) * (3 * q * q * (q - 2) + 4) * FT(0.25)
+        return sigma(kernel) * Math.power(hinv, Val(N)) * (3 * q * q * (q - 2) + 4) * FT(0.25)
     elseif q < FT(2.0)
         to_2::FT = 2 - q
-        return sigma(kernel) * Math.power(h_inv, Val(N)) * Math.power(to_2, Val(3)) * FT(0.25)
+        return sigma(kernel) * Math.power(hinv, Val(N)) * Math.power(to_2, Val(3)) * FT(0.25)
     else
         return FT(0.0)
     end
@@ -40,15 +40,15 @@ end
 
 @inline @fastmath function _gradient(
     r::Real,
-    h_inv::Real,
+    hinv::Real,
     kernel::CubicSpline{IT, FT, N},
 )::FT where {IT <: Integer, FT <: AbstractFloat, N}
-    q::FT = r * h_inv
+    q::FT = r * hinv
     if q < FT(1.0)
-        return sigma(kernel) * Math.power(h_inv, Val(N + 1)) * q * (3 * q - 4) * FT(0.75)
+        return sigma(kernel) * Math.power(hinv, Val(N + 1)) * q * (3 * q - 4) * FT(0.75)
     elseif q < FT(2.0)
         to_2::FT = 2 - q
-        return -sigma(kernel) * Math.power(h_inv, Val(N + 1)) * to_2 * to_2 * FT(0.75)
+        return -sigma(kernel) * Math.power(hinv, Val(N + 1)) * to_2 * to_2 * FT(0.75)
     else
         return FT(0.0)
     end

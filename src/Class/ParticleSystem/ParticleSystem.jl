@@ -32,13 +32,16 @@ struct ParticleSystem{
     Backend,
     Dimension <: AbstractDimension,
 } <: AbstractParticleSystem{IT, FT, CT, Backend, Dimension}
-    host_base_::ParticleSystemBase{IT, FT}
-    device_base_::ParticleSystemBase{IT, FT}
+    n_particles_::Vector{IT}
+    base_::ParticleSystemBase{IT, FT, Backend}
     named_index_::NamedIndex{IT}
     basic_index_::NamedTuple
     basic_parameters_::NamedTuple
     parameters_::NamedTuple # all combined things, including `named_index_.combined_index_named_tuple_` and `basic_parameters_`
 end
+
+const HostParticleSystem{IT, FT, Dimension} =
+    ParticleSystem{IT, FT, Environment.kCPUContainerType, Environment.kCPUBackend, Dimension}
 
 @inline function ParticleSystem(
     parallel::AbstractParallel{IT, FT, CT, Backend},
@@ -61,26 +64,25 @@ end
     int_named_tuple = parallel(int_named_tuple)
     float_named_tuple = parallel(float_named_tuple)
     basic_parameters = parallel(basic_parameters)
-    cpu_parallel = Environment.Parallel{IT, FT, Environment.kCPUContainerType, Environment.kCPUBackend}()
     named_index = NamedIndex{IT}(int_named_tuple, float_named_tuple)
     n_int_capacity = get_n_int_capacity(named_index)
     n_float_capacity = get_n_float_capacity(named_index)
-    host_base = ParticleSystemBase(cpu_parallel, n_capacity, n_int_capacity, n_float_capacity)
-    device_base = ParticleSystemBase(parallel, n_capacity, n_int_capacity, n_float_capacity)
+    base = ParticleSystemBase(parallel, n_capacity, n_int_capacity, n_float_capacity)
     basic_index =
         mapBasicIndex(parallel, get_index_named_tuple(named_index); basic_index_map_dict = basic_index_map_dict)
     parameters = merge(basic_parameters, named_index.combined_index_named_tuple_)
-    host_base.n_particles_[1] = n_particles
-    host_base.is_alive_[1:n_particles] .= IT(1)
+    Base.copyto!(base.n_particles_, [n_particles])
+    is_alive = zeros(IT, n_capacity)
+    is_alive[1:n_particles] .= IT(1)
+    Base.copyto!(base.is_alive_, is_alive)
     particle_system = ParticleSystem{IT, FT, CT, Backend, Dimension}(
-        host_base,
-        device_base,
+        [n_particles],
+        base,
         named_index,
         basic_index,
         basic_parameters,
         parameters,
     )
-    toDevice!(particle_system)
     return particle_system
 end
 
@@ -112,34 +114,65 @@ end
     )
 end
 
+@inline function count!(
+    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    Base.copyto!(particle_system.n_particles_, particle_system.base_.n_particles_)
+    return nothing
+end
+
+@inline function set_n_particles!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    Base.copyto!(particle_system.base_.n_particles_, particle_system.n_particles_)
+    return nothing
+end
+
+@inline function set_n_particles!(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+    n_particles::Integer,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    @inbounds particle_system.n_particles_[1] = IT(n_particles)
+    set_n_particles!(particle_system)
+    return nothing
+end
+
+@inline function clean!(
+    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    @inbounds particle_system.n_particles_[1] = IT(0)
+    set_n_particles!(particle_system)
+    return nothing
+end
+
 @inline function get_n_particles(
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
 )::IT where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    @inbounds return particle_system.host_base_.n_particles_[1]
+    @inbounds return particle_system.n_particles_[1]
 end
 
 @inline function get_alive_n_particles(
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
 )::IT where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    return sum(particle_system.host_base_.is_alive_)
+    return sum(particle_system.base_.is_alive_)
 end
 
 @inline function get_n_capacity(
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
 )::IT where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    return length(particle_system.host_base_.is_alive_)
+    return length(particle_system.base_.is_alive_)
 end
 
 @inline function get_n_int_capacity(
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
 )::IT where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    return size(particle_system.host_base_.int_properties_, 2)
+    return size(particle_system.base_.int_properties_, 2)
 end
 
 @inline function get_n_float_capacity(
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
 )::IT where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    return size(particle_system.host_base_.float_properties_, 2)
+    return size(particle_system.base_.float_properties_, 2)
 end
 
 @inline function get_int_property(
@@ -185,82 +218,94 @@ end
 
 # * ===================== ParticleSystem Data Transfer ===================== * #
 
-@inline function toDevice!(
-    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
-)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    transfer!(Backend, particle_system.device_base_, particle_system.host_base_)
+@inline function mirror(
+    parallel::AbstractParallel{IT, FT, CT1, Backend1},
+    particle_system::AbstractParticleSystem{IT, FT, CT2, Backend2, Dimension},
+)::ParticleSystem{
+    IT,
+    FT,
+    CT1,
+    Backend1,
+    Dimension,
+} where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT1 <: AbstractArray,
+    CT2 <: AbstractArray,
+    Backend1,
+    Backend2,
+    Dimension <: AbstractDimension,
+}
+    n_particles = deepcopy(particle_system.n_particles_)
+    n_capacity = get_n_capacity(particle_system)
+    base = ParticleSystemBase(
+        parallel,
+        n_capacity,
+        get_n_int_capacity(particle_system),
+        get_n_float_capacity(particle_system),
+    )
+    syncto!(base, particle_system.base_)
+    named_index = deepcopy(particle_system.named_index_)
+    basic_index = deepcopy(particle_system.basic_index_)
+    basic_parameters = deepcopy(particle_system.basic_parameters_)
+    parameters = deepcopy(particle_system.parameters_)
+    return ParticleSystem{IT, FT, CT1, Backend1, Dimension}(
+        n_particles,
+        base,
+        named_index,
+        basic_index,
+        basic_parameters,
+        parameters,
+    )
+end
+
+@inline function mirror(
+    particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
+)::ParticleSystem{
+    IT,
+    FT,
+    Environment.kCPUContainerType,
+    Environment.kCPUBackend,
+    Dimension,
+} where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
+    parallel = Environment.Parallel{IT, FT, Environment.kCPUContainerType, Environment.kCPUBackend}()
+    return mirror(parallel, particle_system)
+end
+
+@inline function syncto!(
+    destination_particle_system::AbstractParticleSystem{IT, FT, CT1, Backend1, Dimension},
+    source_particle_system::AbstractParticleSystem{IT, FT, CT2, Backend2, Dimension},
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT1 <: AbstractArray,
+    CT2 <: AbstractArray,
+    Backend1,
+    Backend2,
+    Dimension <: AbstractDimension,
+}
+    @inbounds destination_particle_system.n_particles_[1] = source_particle_system.n_particles_[1]
+    syncto!(destination_particle_system.base_, source_particle_system.base_)
     return nothing
 end
 
-@inline function toHost!(
-    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
-)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    transfer!(Backend, particle_system.host_base_, particle_system.device_base_)
+@inline function asyncto!(
+    destination_particle_system::AbstractParticleSystem{IT, FT, CT1, Backend1, Dimension},
+    source_particle_system::AbstractParticleSystem{IT, FT, CT2, Backend2, Dimension},
+)::Nothing where {
+    IT <: Integer,
+    FT <: AbstractFloat,
+    CT1 <: AbstractArray,
+    CT2 <: AbstractArray,
+    Backend1,
+    Backend2,
+    Dimension <: AbstractDimension,
+}
+    @inbounds destination_particle_system.n_particles_[1] = source_particle_system.n_particles_[1]
+    asyncto!(destination_particle_system.base_, source_particle_system.base_)
     return nothing
 end
 
-# * ===================== ParticleSystem Data Manipulation ===================== * #
+@inline to!(dst, src) = syncto!(dst, src) # default `to!` as `syncto!`
 
-@inline function set_n_particles!(
-    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
-    n_particles::Integer,
-)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    @inbounds particle_system.host_base_.n_particles_[1] = IT(n_particles)
-    fill!(particle_system.host_base_.is_alive_, IT(0))
-    particle_system.host_base_.is_alive_[1:n_particles] .= IT(1)
-    return nothing
-end
-
-@inline function set_int!(
-    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
-    int_properties::Array{<:Integer, 2},
-)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    n_particles = size(int_properties, 1)
-    n_int_capacity = size(int_properties, 2)
-    @assert n_particles <= get_n_capacity(particle_system)
-    @assert n_int_capacity == get_n_int_capacity(particle_system)
-    @inbounds particle_system.host_base_.int_properties_[1:n_particles, :] .= IT.(int_properties)
-    return nothing
-end
-
-@inline function set_float!(
-    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
-    float_properties::Array{<:AbstractFloat, 2},
-)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    n_particles = size(float_properties, 1)
-    n_float_capacity = size(float_properties, 2)
-    @assert n_particles <= get_n_capacity(particle_system)
-    @assert n_float_capacity == get_n_float_capacity(particle_system)
-    @inbounds particle_system.host_base_.float_properties_[1:n_particles, :] .= FT.(float_properties)
-    return nothing
-end
-
-@inline function set_int!(
-    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
-    name::Symbol,
-    value::Array{<:Integer},
-)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    @assert haskey(particle_system.named_index_.int_named_index_table_.capacity_named_tuple_, name)
-    index = getfield(particle_system.named_index_.int_named_index_table_.index_named_tuple_, name)
-    capacity = getfield(particle_system.named_index_.int_named_index_table_.capacity_named_tuple_, name)
-    @assert size(value, 2) == capacity
-    n_particles = size(value, 1)
-    @assert n_particles <= get_n_capacity(particle_system)
-    @inbounds particle_system.host_base_.int_properties_[1:n_particles, index:(index + capacity - 1)] .= IT.(value)
-    return nothing
-end
-
-@inline function set_float!(
-    particle_system::ParticleSystem{IT, FT, CT, Backend, Dimension},
-    name::Symbol,
-    value::Array{<:AbstractFloat},
-)::Nothing where {IT <: Integer, FT <: AbstractFloat, CT <: AbstractArray, Backend, Dimension <: AbstractDimension}
-    @assert haskey(particle_system.named_index_.float_named_index_table_.capacity_named_tuple_, name)
-    index = getfield(particle_system.named_index_.float_named_index_table_.index_named_tuple_, name)
-    capacity = getfield(particle_system.named_index_.float_named_index_table_.capacity_named_tuple_, name)
-    @assert size(value, 2) == capacity
-    n_particles = size(value, 1)
-    @assert n_particles <= get_n_capacity(particle_system)
-    @inbounds particle_system.host_base_.float_properties_[1:n_particles, index:(index + capacity - 1)] .= FT.(value)
-    return nothing
-end
+include("HostParticleSystem.jl")

@@ -8,13 +8,13 @@
  =#
 
 """
-# `accelerate!`
+# `sAccelerate!`
 
 require:
 - `VelocityVec`
 - `dVelocityVec`
 """
-@inline function accelerate!(
+@inline function sAccelerate!(
     ::Type{Dimension},
     I::Integer,
     IP,
@@ -30,13 +30,13 @@ require:
 end
 
 """
-# `move!`
+# `sMove!`
 
 require:
 - `PositionVec`
 - `VelocityVec`
 """
-@inline function move!(
+@inline function sMove!(
     ::Type{Dimension},
     I::Integer,
     IP,
@@ -44,21 +44,21 @@ require:
     PM::NamedTuple;
     dt::Real = 0,
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
-    @inbounds for i::eltype(IP) in 0:(N - 1)
+    @inbounds for i::@int() in 0:(N - 1)
         @inbounds @x(@i, i) += @u(@i, i) * @float(dt)
     end
     return nothing
 end
 
 """
-# `accelerate_move!`
+# `sAccelerateMove!`
 
 require:
 - `VelocityVec`
 - `dVelocityVec`
 - `PositionVec`
 """
-@inline function accelerate_move!(
+@inline function sAccelerateMove!(
     ::Type{Dimension},
     I::Integer,
     IP,

@@ -43,7 +43,7 @@ end
 # """
 # eg.
 # - `@nRVec` return `NI + PM.nRVec`
-# - `@nR(ni, i)` return `FP[I, ni + PM.nR + i]`
+# - `@nR(ni, i)` return `FP[I, dimension * ni + PM.nR + i]`
 # """
 for key in keys(kNeighbourFloatVectorDict)
     names = kNeighbourFloatVectorDict[key]
@@ -51,12 +51,12 @@ for key in keys(kNeighbourFloatVectorDict)
     for name in names
         eval(Meta.parse("""
                         macro $name()
-                            return esc(:(NI + getfield(PM, :$key)))
+                            return esc(:(Environment.vector(Val(Dimension)) * NI + getfield(PM, :$key)))
                         end
                         """))
         eval(Meta.parse("""
         macro $name(ni, i)
-            return esc(:(FP[I, \$ni + PM.$key + \$i]))
+            return esc(:(FP[I, (Environment.vector(Val(Dimension)) * \$ni) + PM.$key + \$i]))
         end
         """))
         eval(Meta.parse("export @$name"))

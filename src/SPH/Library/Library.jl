@@ -28,7 +28,7 @@ end
 )::eltype(FP) where {N, Dimension <: AbstractDimension{N}}
     v_dot_x::@float() = @float 0.0
     for i::@int() in 0:(N - 1)
-        @inbounds v_dot_x += @rvec(NI, i) * (@u(@i, i) - @u(@j, i))
+        @inbounds v_dot_x += @rvec(@ij, i) * (@u(@i, i) - @u(@j, i))
     end
     return v_dot_x
 end

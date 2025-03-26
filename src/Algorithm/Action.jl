@@ -18,18 +18,18 @@
 @inline function J(
     I::Integer,
     NI::Integer,
-    ps_int_properties,
-    parameters::NamedTuple, # must have field named `nIndex`
-)::eltype(ps_int_properties)
-    @inbounds return ps_int_properties[I, parameters.nIndex + NI]
+    IP,
+    PM::NamedTuple, # must have field named `nIndex`
+)::eltype(IP)
+    @inbounds return IP[I, PM.nIndex + NI]
 end
 
 @inline function nullselfaction!(
     ::Type{Dimension},
     I::Integer,
-    ps_int_properties,
-    ps_float_properties,
-    parameters::NamedTuple,
+    IP,
+    FP,
+    PM::NamedTuple,
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
     return nothing
 end
@@ -38,9 +38,9 @@ end
     ::Type{Dimension},
     I::Integer,
     NI::Integer,
-    ps_int_properties,
-    ps_float_properties,
-    parameters::NamedTuple,
+    IP,
+    FP,
+    PM::NamedTuple,
 )::Nothing where {N, Dimension <: AbstractDimension{N}}
     return nothing
 end
@@ -50,14 +50,14 @@ end
 @kernel function device_selfaction!(
     dimension::Type{Dimension},
     @Const(ps_is_alive),
-    ps_int_properties,
-    ps_float_properties,
-    parameters::NamedTuple,
+    IP,
+    FP,
+    PM::NamedTuple,
     action!::Function,
 ) where {N, Dimension <: AbstractDimension{N}}
-    I::eltype(ps_int_properties) = @index(Global)
+    I::eltype(IP) = @index(Global)
     @inbounds if ps_is_alive[I] == 1
-        action!(dimension, I, ps_int_properties, ps_float_properties, parameters)
+        action!(dimension, I, IP, FP, PM)
     end
 end
 
@@ -92,9 +92,9 @@ end
     kernel_selfaction! = device_selfaction!(Backend, n_threads, (Int64(Class.get_n_particles(particle_system)),))
     kernel_selfaction!(
         Dimension,
-        particle_system.device_base_.is_alive_,
-        particle_system.device_base_.int_properties_,
-        particle_system.device_base_.float_properties_,
+        particle_system.base_.is_alive_,
+        particle_system.base_.int_properties_,
+        particle_system.base_.float_properties_,
         particle_system.parameters_,
         action!,
         ndrange = (Class.get_n_particles(particle_system),),
@@ -117,9 +117,9 @@ end
 }
     device_selfaction!(Backend, n_threads)(
         Dimension,
-        particle_system.device_base_.is_alive_,
-        particle_system.device_base_.int_properties_,
-        particle_system.device_base_.float_properties_,
+        particle_system.base_.is_alive_,
+        particle_system.base_.int_properties_,
+        particle_system.base_.float_properties_,
         particle_system.parameters_,
         action!,
         ndrange = (Class.get_n_particles(particle_system),),
@@ -132,17 +132,17 @@ end
 @kernel function device_interaction!(
     dimension::Type{Dimension},
     @Const(ps_is_alive),
-    ps_int_properties,
-    ps_float_properties,
-    parameters::NamedTuple,
+    IP,
+    FP,
+    PM::NamedTuple,
     index_nCount::IT,
     action!::Function,
 ) where {IT <: Integer, N, Dimension <: AbstractDimension{N}}
-    I::eltype(ps_int_properties) = @index(Global)
+    I::eltype(IP) = @index(Global)
     @inbounds if ps_is_alive[I] == 1
         NI::IT = IT(0)
-        @inbounds while NI < ps_int_properties[I, index_nCount]
-            action!(dimension, I, NI, ps_int_properties, ps_float_properties, parameters)
+        @inbounds while NI < IP[I, index_nCount]
+            action!(dimension, I, NI, IP, FP, PM)
             NI += IT(1)
         end
     end
@@ -179,9 +179,9 @@ end
     kernel_interaction! = device_interaction!(Backend, n_threads, (Int64(Class.get_n_particles(particle_system)),))
     kernel_interaction!(
         Dimension,
-        particle_system.device_base_.is_alive_,
-        particle_system.device_base_.int_properties_,
-        particle_system.device_base_.float_properties_,
+        particle_system.base_.is_alive_,
+        particle_system.base_.int_properties_,
+        particle_system.base_.float_properties_,
         particle_system.parameters_,
         particle_system.basic_index_.nCount,
         action!,
@@ -205,9 +205,9 @@ end
 }
     device_interaction!(Backend, n_threads)(
         Dimension,
-        particle_system.device_base_.is_alive_,
-        particle_system.device_base_.int_properties_,
-        particle_system.device_base_.float_properties_,
+        particle_system.base_.is_alive_,
+        particle_system.base_.int_properties_,
+        particle_system.base_.float_properties_,
         particle_system.parameters_,
         particle_system.basic_index_.nCount,
         action!,

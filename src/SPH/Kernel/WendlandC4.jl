@@ -16,13 +16,13 @@ struct WendlandC4{IT <: Integer, FT <: AbstractFloat, N} <: AbstractKernel{IT, F
 
 @inline @fastmath function _value(
     r::Real,
-    h_inv::Real,
+    hinv::Real,
     kernel::WendlandC4{IT, FT, N},
 )::FT where {IT <: Integer, FT <: AbstractFloat, N}
-    q::FT = r * h_inv
+    q::FT = r * hinv
     if q < FT(2.0)
         return sigma(kernel) *
-               Math.power(h_inv, Val(N)) *
+               Math.power(hinv, Val(N)) *
                Math.power(2 - q, Val(6)) *
                (q * (35 * q + 36) + 12) *
                FT(0.0013020833333333333)
@@ -41,13 +41,13 @@ end
 
 @inline @fastmath function _gradient(
     r::Real,
-    h_inv::Real,
+    hinv::Real,
     kernel::WendlandC4{IT, FT, N},
 )::FT where {IT <: Integer, FT <: AbstractFloat, N}
-    q::FT = r * h_inv
+    q::FT = r * hinv
     if q < FT(2.0)
         return -sigma(kernel) *
-               Math.power(h_inv, Val(N + 1)) *
+               Math.power(hinv, Val(N + 1)) *
                q *
                (FT(0.3645833333333333) * q + FT(0.14583333333333334)) *
                Math.power(2 - q, Val(5))

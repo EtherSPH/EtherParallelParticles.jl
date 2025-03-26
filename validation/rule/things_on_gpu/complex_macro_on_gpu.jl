@@ -56,7 +56,7 @@ end
 
 import .Macro as M
 
-@inline function volume!(
+@inline function sVolume!(
     ::Type{Dimension},
     I::Integer,
     IP,
@@ -80,7 +80,7 @@ end
 
 @kernel function device_f!(::Type{Dimension}, IP, FP, PM::NamedTuple) where {N, Dimension <: AbstractDimension{N}}
     I = @index(Global)
-    volume!(Dimension, I, IP, FP, PM)
+    sVolume!(Dimension, I, IP, FP, PM)
     det(Dimension, I, IP, FP, PM)
 end
 

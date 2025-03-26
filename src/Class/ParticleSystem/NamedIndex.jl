@@ -69,7 +69,11 @@ end
             index += 1
         else
             for j in 1:capacity_named_tuple[i]
-                name_symbol_table_head[index] = Symbol(string(name_symbol_list[i], "_", j))
+                if j == 1
+                    name_symbol_table_head[index] = name_symbol_list[i]
+                else
+                    name_symbol_table_head[index] = Symbol(string(name_symbol_list[i], "_", j))
+                end
                 index += 1
             end
         end
@@ -115,6 +119,14 @@ end
 
 @inline function get_n_float_capacity(named_index::NamedIndex{IT})::IT where {IT <: Integer}
     return get_n_capacity(named_index.float_named_index_table_)
+end
+
+@inline function get_int_symbol_head(named_index::NamedIndex{IT})::Vector{Symbol} where {IT <: Integer}
+    return named_index.int_named_index_table_.name_symbol_table_head_
+end
+
+@inline function get_float_symbol_head(named_index::NamedIndex{IT})::Vector{Symbol} where {IT <: Integer}
+    return named_index.float_named_index_table_.name_symbol_table_head_
 end
 
 function Base.show(io::IO, named_index::NamedIndex{IT}) where {IT <: Integer}

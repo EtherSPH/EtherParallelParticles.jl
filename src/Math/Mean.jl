@@ -42,5 +42,3 @@ end
 end
 
 end # module Mean
-
-export Mean

@@ -3,11 +3,14 @@
 # ignore folders
 draft/**
 drafts/**
+demos/**
 .VSCodeCounter/**
 .stfolder/**
 
 # ignore files
 **.exe
+gpucore.**
+*.jld2
 
 # ignore specified files
 Manifest.toml

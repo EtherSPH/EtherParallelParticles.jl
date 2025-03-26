@@ -7,15 +7,7 @@
   @ description:
  =#
 
-"""
-# `volume!`
-
-require:
-- `Mass`
-- `Density`
-- `Volume`
-"""
-@inline function volume!(
+@inline function sVolume!(
     ::Type{Dimension},
     I::Integer,
     IP,
@@ -26,7 +18,7 @@ require:
     return nothing
 end
 
-@inline function acceleration!(
+@inline function sAcceleration!(
     ::Type{Dimension},
     I::Integer,
     IP,
@@ -40,13 +32,7 @@ end
     return nothing
 end
 
-"""
-# `gravity!`
-
-require:
-- `dVelocityVec`
-"""
-@inline function gravity!(
+@inline function sGravity!(
     ::Type{Dimension},
     I::Integer,
     IP,
@@ -60,13 +46,7 @@ require:
     return nothing
 end
 
-"""
-# `gravity!`
-
-require:
-- `dVelocityVec`
-"""
-@inline function gravity!(
+@inline function sGravity!(
     ::Type{Dimension},
     I::Integer,
     IP,

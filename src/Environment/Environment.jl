@@ -17,12 +17,5 @@ export Dimension1D, Dimension2D, Dimension3D
 
 include("Parallel.jl")
 export AbstractParallel
-export Parallel
 
 end # module Environment
-
-using EtherParallelParticles.Environment: Dimension1D, Dimension2D, Dimension3D
-using EtherParallelParticles.Environment: Parallel
-
-export Dimension1D, Dimension2D, Dimension3D
-export Parallel

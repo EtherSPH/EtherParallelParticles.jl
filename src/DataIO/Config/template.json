@@ -78,6 +78,7 @@
         "path": "demo",
         "file_name": "result",
         "connect": "_",
-        "digits": 4
+        "digits": 4,
+        "suffix": ".jld2"
     }
 }

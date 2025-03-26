@@ -11,7 +11,7 @@ module Macro
 
 @doc md"""
 this is a dangerous module, for meta-programming is used here, code is generated from strings
-although @BigCamelCase is provided, the macro-style like @snake_case is also recommended 
+although @BigCamelCase is provided, the macro-style like @snake_case is highly recommended 
 """
 
 macro i()

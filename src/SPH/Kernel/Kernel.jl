@@ -21,10 +21,10 @@ include("WendlandC2.jl")
 include("WendlandC4.jl")
 
 @inline @fastmath function _value0(
-    h_inv::Real,
+    hinv::Real,
     kernel::AbstractKernel{IT, FT, N},
 )::FT where {IT <: Integer, FT <: AbstractFloat, N}
-    return sigma(kernel) * Math.power(h_inv, Val(N))
+    return sigma(kernel) * Math.power(hinv, Val(N))
 end
 
 @inline @fastmath function value0(
