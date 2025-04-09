@@ -24,20 +24,9 @@
     @inbounds return IP[I, PM.nIndex + NI]
 end
 
-@inline function nullselfaction!(
+@inline function defaultSelfaction!(
     ::Type{Dimension},
     I::Integer,
-    IP,
-    FP,
-    PM::NamedTuple,
-)::Nothing where {N, Dimension <: AbstractDimension{N}}
-    return nothing
-end
-
-@inline function nullinteraction!(
-    ::Type{Dimension},
-    I::Integer,
-    NI::Integer,
     IP,
     FP,
     PM::NamedTuple,

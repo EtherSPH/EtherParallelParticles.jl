@@ -16,7 +16,7 @@
     config_dict["parallel"]["int"] = "$IT"
     config_dict["parallel"]["float"] = "$FT"
     container_string = "$CT"
-    name = kContainerToName[container_string]
+    name = Environment.kContainerToName[container_string]
     config_dict["parallel"]["backend"] = name
     device = KernelAbstractions.device(Backend)
     config_dict["parallel"]["device"] = device

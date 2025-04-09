@@ -15,7 +15,7 @@ using KernelAbstractions
 using EtherParallelParticles.Environment
 
 const kDefaultThreadNumber = 256
-const kDefaultMaxNeighbourNumber = 50
+const kDefaultMaxNeighbourNumber = 40
 
 include("Domain/AbstractDomain.jl")
 export AbstractDomain

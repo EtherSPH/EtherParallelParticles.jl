@@ -35,25 +35,16 @@ end
     source_base::ParticleSystemBase{IT, FT, Backend2},
 )::Nothing where {IT <: Integer, FT <: AbstractFloat, Backend1, Backend2}
     # async copy
-    n_particles_task = Threads.@spawn begin
+    none_float_properties_task = Threads.@spawn begin
         Base.copyto!(destination_base.n_particles_, source_base.n_particles_)
-    end
-    is_alive_task = Threads.@spawn begin
         Base.copyto!(destination_base.is_alive_, source_base.is_alive_)
-    end
-    cell_index_task = Threads.@spawn begin
         Base.copyto!(destination_base.cell_index_, source_base.cell_index_)
-    end
-    int_properties_task = Threads.@spawn begin
         Base.copyto!(destination_base.int_properties_, source_base.int_properties_)
     end
     float_properties_task = Threads.@spawn begin
         Base.copyto!(destination_base.float_properties_, source_base.float_properties_)
     end
-    Base.fetch(n_particles_task)
-    Base.fetch(is_alive_task)
-    Base.fetch(cell_index_task)
-    Base.fetch(int_properties_task)
+    Base.fetch(none_float_properties_task)
     Base.fetch(float_properties_task)
     return nothing
 end

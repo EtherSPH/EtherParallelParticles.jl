@@ -138,6 +138,31 @@ end
     dy + neighbour_cell_relative_position_list[cell_index, i_neighbour_cell, 2]
 end
 
+@inline function defaultSearchCriterion(
+    domain::AbstractDomain{IT, FT, Dimension},
+    I::Integer,
+    J::Integer,
+    IP,
+    FP,
+    PM::NamedTuple,
+    dr_square::Real,
+) where {IT <: Integer, FT <: AbstractFloat, N, Dimension <: AbstractDimension{N}}
+    return dr_square <= Class.get_gap_square(domain)
+end
+
+@inline function symmetrySearchCriterion(
+    domain::AbstractDomain{IT, FT, Dimension},
+    I::Integer,
+    J::Integer,
+    IP,
+    FP,
+    PM::NamedTuple,
+    dr_square::Real,
+) where {IT <: Integer, FT <: AbstractFloat, N, Dimension <: AbstractDimension{N}}
+    h2 = Math.Mean.harmonic(FP[I, PM.H], FP[J, PM.H]) * 2
+    return dr_square <= h2 * h2
+end
+
 @kernel function device_findNeighbourParticlesFromCells!(
     domain_2d::AbstractDomain{IT, FT, Dimension2D},
     periodic_boundary_policy::Type{<:AbstractPeriodicBoundaryPolicy},
@@ -157,6 +182,9 @@ end
     index_nIndex::IT,
     index_nRVec::IT,
     index_nR::IT,
+    ps_parameters::NamedTuple,
+    criterion::Function,
+    action!::Function,
 ) where {IT <: Integer, FT <: AbstractFloat}
     I::IT = @index(Global)
     @inbounds if ps_is_alive[I] == 1
@@ -183,7 +211,7 @@ end
                         ns_neighbour_cell_relative_position_list,
                     )
                     dr_square::FT = dx * dx + dy * dy
-                    if dr_square <= Class.get_gap_square(domain_2d)
+                    if criterion(domain_2d, I, J, ps_int_properties, ps_float_properties, ps_parameters, dr_square)
                         @inbounds ps_int_properties[I, index_nCount] += 1
                         @inbounds neighbour_count::IT = ps_int_properties[I, index_nCount]
                         @inbounds ps_int_properties[I, index_nIndex + neighbour_count - 1] = J
@@ -194,6 +222,7 @@ end
                 end
             end
         end
+        action!(Dimension2D, I, ps_int_properties, ps_float_properties, ps_parameters)
     end
 end
 
@@ -204,6 +233,8 @@ end
     domain::AbstractDomain{IT, FT, Dimension},
     neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy},
     n_particles::IT;
+    criterion::Function = defaultSearchCriterion,
+    action!::Function = defaultSelfaction!,
     n_threads::Integer = kDefaultThreadNumber,
 )::Nothing where {
     IT <: Integer,
@@ -234,6 +265,9 @@ end
         particle_system.basic_index_.nIndex,
         particle_system.basic_index_.nRVec,
         particle_system.basic_index_.nR,
+        particle_system.parameters_,
+        criterion,
+        action!,
         ndrange = (n_particles,),
     )
     KernelAbstractions.synchronize(Backend)
@@ -245,6 +279,8 @@ end
     domain::AbstractDomain{IT, FT, Dimension},
     neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy},
     n_particles::IT;
+    criterion::Function = defaultSearchCriterion,
+    action!::Function = defaultSelfaction!,
     n_threads::Integer = kDefaultThreadNumber,
 )::Nothing where {
     IT <: Integer,
@@ -273,6 +309,9 @@ end
         particle_system.basic_index_.nIndex,
         particle_system.basic_index_.nRVec,
         particle_system.basic_index_.nR,
+        particle_system.parameters_,
+        criterion,
+        action!,
         ndrange = (n_particles,),
     )
     KernelAbstractions.synchronize(Backend)
@@ -285,6 +324,8 @@ end
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
     domain::AbstractDomain{IT, FT, Dimension},
     neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy};
+    criterion::Function = defaultSearchCriterion,
+    action!::Function = defaultSelfaction!,
     n_threads::Integer = kDefaultThreadNumber,
 )::Nothing where {
     IT <: Integer,
@@ -294,7 +335,14 @@ end
     Dimension <: AbstractDimension,
     PeriodicBoundaryPolicy <: AbstractPeriodicBoundaryPolicy,
 }
-    static_search!(particle_system, domain, neighbour_system; n_threads = n_threads) # default `static_search!`
+    static_search!(
+        particle_system,
+        domain,
+        neighbour_system;
+        criterion = criterion,
+        action! = action!,
+        n_threads = n_threads,
+    ) # default `static_search!`
     return nothing
 end
 
@@ -302,6 +350,8 @@ end
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
     domain::AbstractDomain{IT, FT, Dimension},
     neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy};
+    criterion::Function = defaultSearchCriterion,
+    action!::Function = defaultSelfaction!,
     n_threads::Integer = kDefaultThreadNumber,
 )::Nothing where {
     IT <: Integer,
@@ -319,6 +369,8 @@ end
         domain,
         neighbour_system,
         n_particles;
+        criterion = criterion,
+        action! = action!,
         n_threads = n_threads,
     )
     return nothing
@@ -328,6 +380,8 @@ end
     particle_system::AbstractParticleSystem{IT, FT, CT, Backend, Dimension},
     domain::AbstractDomain{IT, FT, Dimension},
     neighbour_system::AbstractNeighbourSystem{IT, FT, CT, Backend, PeriodicBoundaryPolicy};
+    criterion::Function = defaultSearchCriterion,
+    action!::Function = defaultSelfaction!,
     n_threads::Integer = kDefaultThreadNumber,
 )::Nothing where {
     IT <: Integer,
@@ -351,6 +405,8 @@ end
         domain,
         neighbour_system,
         n_particles;
+        criterion = criterion,
+        action! = action!,
         n_threads = n_threads,
     )
     return nothing

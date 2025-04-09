@@ -58,11 +58,65 @@ end
     return Writer(path, config_writer, raw_writer, tasks)
 end
 
+@inline function get_raw_path(writer::AbstractWriter)::String
+    return get_path(writer.raw_writer_)
+end
+
+@inline function get_raw_file(writer::AbstractWriter; step = :first)::String
+    raw_files = get_raw_files(writer)
+    if step == :first
+        step = 1
+    elseif step == :last
+        step = length(raw_files)
+    else
+        step += 1
+    end
+    @assert step <= length(raw_files) "step out of range, max step is $(length(raw_files))"
+    return raw_files[step]
+end
+
+@inline function get_raw_files(writer::AbstractWriter)::Vector{String}
+    raw_path = get_raw_path(writer)
+    files_list = readdir(raw_path)
+    sort!(files_list)
+    return [joinpath(raw_path, file) for file in files_list]
+end
+
+function Base.length(writer::AbstractWriter)
+    return length(get_raw_files(writer))
+end
+
 @inline function assuredir(path::String)::Nothing
     if !isdir(path)
         mkpath(path)
     end
     return nothing
+end
+
+@inline function get_config_dict(writer::AbstractWriter; format = :json, dicttype = OrderedDict)
+    config_file = get_config_file(writer; format = format)
+    if format == :json
+        config_dict = JSON.parsefile(config_file; dicttype = dicttype)
+    elseif format == :yaml
+        config_dict = YAML.load_file(config_file; dicttype = dicttype)
+    else
+        @warn "unknown config file format, use json as default"
+        config_dict = JSON.parsefile(config_file; dicttype = dicttype)
+    end
+    return config_dict
+end
+
+@inline function get_config_file(writer::AbstractWriter; format = :json)::String
+    path = get_path(writer.config_writer_)
+    if format == :json
+        file_name = "config.json"
+    elseif format == :yaml
+        file_name = "config.yaml"
+    else
+        @warn "unknown config file format, use json as default"
+        file_name = "config.json"
+    end
+    return joinpath(path, file_name)
 end
 
 @inline function mkdir(writer::AbstractWriter)::Nothing
@@ -155,4 +209,33 @@ end
     Class.syncto!(host_particle_system, device_particle_system)
     save!(writer, host_particle_system, appendix; format = format, compress = compress)
     return nothing
+end
+
+@inline function load!(
+    writer::AbstractWriter,
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension};
+    appendix::AbstractDict = appendix(),
+    step = :first,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    file_name = get_raw_file(writer; step = step)
+    JLD2.jldopen(file_name, "r") do jld_file
+        for key in keys(appendix)
+            appendix[key] = jld_file["appendix/$key"]
+        end
+        Class.set_int!(particle_system, jld_file["raw/int_properties"])
+        Class.set_float!(particle_system, jld_file["raw/float_properties"])
+    end
+    Class.set_is_alive!(particle_system)
+    return nothing
+end
+
+@inline function load(writer::AbstractWriter; appendix::AbstractDict = appendix(), step = :first)
+    config_dict = JSON.parsefile(get_config_file(writer; format = :json); dicttype = OrderedDict)
+    IT = eval(Meta.parse(config_dict["parallel"]["int"]))
+    FT = eval(Meta.parse(config_dict["parallel"]["float"]))
+    parallel = Environment.Parallel{IT, FT, Environment.kCPUContainerType, Environment.kCPUBackend}()
+    domain = DataIO.Domain(config_dict, parallel)
+    host_particle_system = DataIO.ParticleSystem(config_dict, parallel, domain)
+    load!(writer, host_particle_system; appendix = appendix, step = step)
+    return host_particle_system
 end

@@ -14,12 +14,13 @@ include("Math/Math.jl")
 include("Environment/Environment.jl")
 include("Class/Class.jl")
 include("Algorithm/Algorithm.jl")
+include("Geometry/Geometry.jl")
 include("DataIO/DataIO.jl")
 include("SPH/SPH.jl")
 
 export Utility, Math
 export Environment, Class, Algorithm
-export DataIO
+export Geometry, DataIO
 export SPH
 
 end # module EtherParallelParticles

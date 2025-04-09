@@ -34,6 +34,18 @@ macro inter_args()
     return esc(:((Dimension, I, NI, IP, FP, PM)...))
 end
 
+macro ci()
+    return esc(:(I))
+end
+
+macro cj()
+    return esc(:(J))
+end
+
+macro criterion_args()
+    return esc(:((domain, I, J, IP, FP, PM, dr_square)...))
+end
+
 macro int()
     return esc(:(eltype(IP)))
 end
@@ -53,6 +65,8 @@ end
 export @i, @j, @ij
 export @self_args, @inter_args
 export @int, @float
+export @ci, @cj
+export @criterion_args
 
 include("Scalar.jl")
 include("Vector.jl")

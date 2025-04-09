@@ -14,6 +14,7 @@ using Atomix
 
 using EtherParallelParticles.Environment
 using EtherParallelParticles.Class
+using EtherParallelParticles.Math
 
 const kDefaultThreadNumber = 256
 const kDefaultMaxNeighbourNumber = 50

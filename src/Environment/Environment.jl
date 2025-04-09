@@ -18,4 +18,6 @@ export Dimension1D, Dimension2D, Dimension3D
 include("Parallel.jl")
 export AbstractParallel
 
+include("Backend.jl")
+
 end # module Environment

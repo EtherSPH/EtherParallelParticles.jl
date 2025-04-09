@@ -6,11 +6,13 @@ drafts/**
 demos/**
 .VSCodeCounter/**
 .stfolder/**
+**/result/
 
 # ignore files
-**.exe
-gpucore.**
+*.exe
+gpucore.*
 *.jld2
+*.ipynb
 
 # ignore specified files
 Manifest.toml

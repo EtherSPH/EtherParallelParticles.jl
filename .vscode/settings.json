@@ -186,6 +186,18 @@
             "rootFolderNames": [
                 "raw"
             ]
+        },
+        {
+            "name": "geometry",
+            "base": "prisma",
+            "color": "purple-500",
+            "lightColor": "purple-700",
+            "folderNames": [
+                "geometry",
+            ],
+            "rootFolderNames": [
+                "geometry"
+            ]
         }
     ],
     "peacock.remoteColor": "#42b883",

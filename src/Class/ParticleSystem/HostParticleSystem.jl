@@ -66,7 +66,7 @@ end
     n_particles = size(int_properties, 1)
     n_capacity = get_n_capacity(particle_system)
     @assert n_particles <= n_capacity "particles number exceed capacity, consider expand the capacity $(n_particles) > $(n_capacity)"
-    @assert size(int_properties, 2) == get_n_int_capacity(particle_system) "int capacity not match"
+    @assert size(int_properties, 2) == get_n_int_capacity(particle_system) "int capacity not match $(size(int_properties, 2)) != $(get_n_int_capacity(particle_system))"
     @inbounds particle_system.base_.int_properties_[1:n_particles, :] .= IT.(int_properties)
     set_n_particles!(particle_system, n_particles)
     return nothing
@@ -79,7 +79,7 @@ end
     n_particles = size(float_properties, 1)
     n_capacity = get_n_capacity(particle_system)
     @assert n_particles <= n_capacity "particles number exceed capacity, consider expand the capacity $(n_particles) > $(n_capacity)"
-    @assert size(float_properties, 2) == get_n_float_capacity(particle_system) "float capacity not match"
+    @assert size(float_properties, 2) == get_n_float_capacity(particle_system) "float capacity not match $(size(float_properties, 2)) != $(get_n_float_capacity(particle_system))"
     @inbounds particle_system.base_.float_properties_[1:n_particles, :] .= FT.(float_properties)
     set_n_particles!(particle_system, n_particles)
     return nothing
@@ -170,6 +170,208 @@ end
 )::IT where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
     @assert haskey(particle_system.named_index_.float_named_index_table_.index_named_tuple_, name)
     return getfield(particle_system.named_index_.float_named_index_table_.index_named_tuple_, name)
+end
+
+@inline function get_int(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    name::Symbol,
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_int_index(particle_system, name)
+    capacity = get_int_capacity(particle_system, name)
+    n_particles = get_n_particles(particle_system)
+    @assert n_particles > 0 "no particles in the system"
+    if capacity == 1
+        return particle_system.base_.int_properties_[1:n_particles, index]
+    else
+        return particle_system.base_.int_properties_[1:n_particles, index:(index + capacity - 1)]
+    end
+end
+
+@inline function get_int(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    name::Symbol,
+    i::Integer,
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_int_index(particle_system, name)
+    capacity = get_int_capacity(particle_system, name)
+    return particle_system.base_.int_properties_[i, index:(index + capacity - 1)]
+end
+
+@inline function get_float(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    name::Symbol,
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_float_index(particle_system, name)
+    capacity = get_float_capacity(particle_system, name)
+    n_particles = get_n_particles(particle_system)
+    @assert n_particles > 0 "no particles in the system"
+    if capacity == 1
+        return particle_system.base_.float_properties_[1:n_particles, index]
+    else
+        return particle_system.base_.float_properties_[1:n_particles, index:(index + capacity - 1)]
+    end
+end
+
+@inline function get_float(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    name::Symbol,
+    i::Integer,
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_float_index(particle_system, name)
+    capacity = get_float_capacity(particle_system, name)
+    return particle_system.base_.float_properties_[i, index:(index + capacity - 1)]
+end
+
+@inline function set_int!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    int_property::Array{<:Integer},
+    name::Symbol,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_int_index(particle_system, name)
+    capacity = get_int_capacity(particle_system, name)
+    n_particles = size(int_property, 1)
+    @assert n_particles <= get_n_capacity(particle_system) "particles number exceed capacity, consider expand the capacity $(n_particles) > $(get_n_capacity(particle_system))"
+    @inbounds particle_system.base_.int_properties_[1:n_particles, index:(index + capacity - 1)] .= IT.(int_property)
+    return nothing
+end
+
+@inline function set_int!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    int_property::Integer,
+    name::Symbol,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_int_index(particle_system, name)
+    capacity = get_int_capacity(particle_system, name)
+    n_particles = get_n_particles(particle_system)
+    @inbounds particle_system.base_.int_properties_[1:n_particles, index:(index + capacity - 1)] .= IT(int_property)
+    return nothing
+end
+
+@inline function set_int!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    int_property::Array{<:Integer},
+    name::Symbol,
+    i::Integer,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_int_index(particle_system, name)
+    capacity = get_int_capacity(particle_system, name)
+    n_capacity = get_n_capacity(particle_system)
+    @assert n_capacity >= i "particles number exceed capacity, consider expand the capacity $(n_capacity) > $(get_n_capacity(particle_system))"
+    @assert capacity >= length(int_property) "int capacity not match"
+    @inbounds particle_system.base_.int_properties_[i, index:(index + length(int_property) - 1)] .= IT.(int_property)
+    return nothing
+end
+
+@inline function set_int!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    int_property::Integer,
+    name::Symbol,
+    i::Integer,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_int_index(particle_system, name)
+    capacity = get_int_capacity(particle_system, name)
+    n_capacity = get_n_capacity(particle_system)
+    @assert n_capacity >= i "particles number exceed capacity, consider expand the capacity $(n_capacity) > $(get_n_capacity(particle_system))"
+    @inbounds particle_system.base_.int_properties_[i, index:(index + capacity - 1)] .= IT(int_property)
+    return nothing
+end
+
+@inline function set_float!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    float_property::Array{<:AbstractFloat},
+    name::Symbol,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_float_index(particle_system, name)
+    capacity = get_float_capacity(particle_system, name)
+    n_particles = size(float_property, 1)
+    @assert n_particles <= get_n_capacity(particle_system) "particles number exceed capacity, consider expand the capacity $(n_particles) > $(get_n_capacity(particle_system))"
+    @inbounds particle_system.base_.float_properties_[1:n_particles, index:(index + capacity - 1)] .=
+        FT.(float_property)
+    return nothing
+end
+
+@inline function set_float!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    float_property::AbstractFloat,
+    name::Symbol,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_float_index(particle_system, name)
+    capacity = get_float_capacity(particle_system, name)
+    n_particles = get_n_particles(particle_system)
+    @inbounds particle_system.base_.float_properties_[1:n_particles, index:(index + capacity - 1)] .= FT(float_property)
+    return nothing
+end
+
+@inline function set_float!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    float_property::Array{<:AbstractFloat},
+    name::Symbol,
+    i::Integer,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_float_index(particle_system, name)
+    capacity = get_float_capacity(particle_system, name)
+    n_capacity = get_n_capacity(particle_system)
+    @assert n_capacity >= i "particles number exceed capacity, consider expand the capacity $(n_capacity) > $(get_n_capacity(particle_system))"
+    @assert capacity >= length(float_property) "float capacity not match"
+    @inbounds particle_system.base_.float_properties_[i, index:(index + length(float_property) - 1)] .=
+        FT.(float_property)
+    return nothing
+end
+
+@inline function set_float!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    float_property::AbstractFloat,
+    name::Symbol,
+    i::Integer,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    index = get_float_index(particle_system, name)
+    capacity = get_float_capacity(particle_system, name)
+    n_capacity = get_n_capacity(particle_system)
+    @assert n_capacity >= i "particles number exceed capacity, consider expand the capacity $(n_capacity) > $(get_n_capacity(particle_system))"
+    @inbounds particle_system.base_.float_properties_[i, index:(index + capacity - 1)] .= FT(float_property)
+    return nothing
+end
+
+@inline function Base.getindex(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    name::Symbol,
+) where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    if name in keys(particle_system.named_index_.int_named_index_table_.index_named_tuple_)
+        return get_int(particle_system, name)
+    elseif name in keys(particle_system.named_index_.float_named_index_table_.index_named_tuple_)
+        return get_float(particle_system, name)
+    else
+        error("unknown property $(name)")
+    end
+end
+
+@inline function Base.setindex!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    value,
+    name::Symbol,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    if name in keys(particle_system.named_index_.int_named_index_table_.index_named_tuple_)
+        return set_int!(particle_system, value, name)
+    elseif name in keys(particle_system.named_index_.float_named_index_table_.index_named_tuple_)
+        return set_float!(particle_system, value, name)
+    else
+        error("unknown property $(name)")
+    end
+end
+
+@inline function Base.setindex!(
+    particle_system::AbstractHostParticleSystem{IT, FT, Dimension},
+    value,
+    name::Symbol,
+    i::Integer,
+)::Nothing where {IT <: Integer, FT <: AbstractFloat, Dimension <: AbstractDimension}
+    if name in keys(particle_system.named_index_.int_named_index_table_.index_named_tuple_)
+        return set_int!(particle_system, value, name, i)
+    elseif name in keys(particle_system.named_index_.float_named_index_table_.index_named_tuple_)
+        return set_float!(particle_system, value, name, i)
+    else
+        error("unknown property $(name)")
+    end
 end
 
 # * ===================== Particle Definition ===================== * #
